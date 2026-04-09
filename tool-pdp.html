@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>商详巡检 - 会议平板商详页Checklist</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#F0F1F5;--card:#FFFFFF;--text:#1B1F3B;--sub:#6B7280;--hint:#9CA3AF;--border:#E5E7EB;--accent:#534AB7;--danger:#DC2626;--warn:#D97706;--safe:#16A34A;--info:#2563EB;--radius:14px}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;overflow-x:hidden}
+input,select,button,textarea{font-family:inherit;font-size:14px}
+input[type=text],input[type=url],select,textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+button{cursor:pointer;border:none;outline:none}
+.app{max-width:520px;margin:0 auto;min-height:100vh;padding:0 16px 90px}
+.topbar{display:flex;align-items:center;padding:16px 0 12px;gap:10px;position:sticky;top:0;background:var(--bg);z-index:50}
+.page-title{font-size:20px;font-weight:600;flex:1}
+.header-badge{font-size:12px;color:#fff;border-radius:10px;padding:2px 9px;font-weight:600}
+.card{background:var(--card);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.summary-row{display:flex;gap:8px;margin-bottom:14px}
+.summary-box{flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.summary-num{font-size:20px;font-weight:700;margin-bottom:1px}.summary-label{font-size:10px;color:var(--sub)}
+.tag{display:inline-block;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.tag-danger{color:var(--danger);background:#FEE2E2}.tag-warn{color:var(--warn);background:#FEF3C7}.tag-safe{color:var(--safe);background:#DCFCE7}
+.btn-primary{background:var(--text);color:#fff;border-radius:50px;padding:13px 32px;font-size:15px;font-weight:600;width:100%;transition:opacity .15s}.btn-primary:active{opacity:.85}
+.btn-sm{padding:6px 16px;font-size:13px;font-weight:500;border-radius:20px;background:#F3F4F6;color:var(--text)}
+.btn-accent{background:#EEEDFE;color:var(--accent);font-weight:600;border-radius:20px;padding:5px 14px;font-size:12px}
+.btn-danger-sm{background:#FEE2E2;color:var(--danger);font-weight:500;border-radius:10px;padding:3px 10px;font-size:11px}
+.btn-copy{background:#DCFCE7;color:var(--safe);font-weight:600;border-radius:20px;padding:6px 14px;font-size:12px}
+.btn-link{background:none;color:var(--info);font-size:12px;text-decoration:underline;padding:0}
+.field{margin-bottom:14px}.field-label{font-size:13px;color:var(--sub);margin-bottom:5px}
+.field-row{display:flex;gap:10px}.field-row .field{flex:1}
+.section-title{font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:#fff;color:var(--sub);cursor:pointer;transition:all .15s}
+.filter-chip.active{border-color:var(--accent);background:#EEEDFE;color:var(--accent);font-weight:600}
+.modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:20px}
+.modal-body{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:20px 18px}
+.confirm-modal{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);padding:20px}
+.confirm-box{background:#fff;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-box h3{font-size:16px;margin-bottom:8px}.confirm-box p{font-size:14px;color:var(--sub);margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}.confirm-btns button{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600}
+.confirm-cancel{background:#F3F4F6;color:var(--text)}.confirm-ok{background:var(--danger);color:#fff}
+.alert-banner{background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px}
+.alert-banner.warn{background:#FFFBEB;border-color:#FDE68A}.alert-banner.info{background:#EFF6FF;border-color:#BFDBFE}
+.alert-banner .a-title{font-size:13px;font-weight:600;color:var(--danger);margin-bottom:4px}.alert-banner.warn .a-title{color:var(--warn)}.alert-banner.info .a-title{color:var(--info)}
+.alert-banner .a-text{font-size:12px;color:#991B1B;line-height:1.7}.alert-banner.warn .a-text{color:#92400E}.alert-banner.info .a-text{color:#1E40AF}
+.progress-wrap{height:8px;background:#E5E7EB;border-radius:4px;overflow:hidden;flex:1}
+.progress-bar{height:100%;border-radius:4px;transition:width .4s}
+.sku-list-card{cursor:pointer;transition:box-shadow .2s}.sku-list-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+/* check module */
+.check-module{padding:14px 0;border-bottom:1px solid #F3F4F6}.check-module:last-child{border:none}
+.check-top{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.check-box{width:24px;height:24px;border:2px solid var(--border);border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:1px;font-size:13px}
+.check-box.checked{background:var(--safe);border-color:var(--safe);color:#fff}
+.check-box.issue{background:var(--danger);border-color:var(--danger);color:#fff}
+.check-info{flex:1;min-width:0}
+.check-title{font-size:14px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.check-req{font-size:12px;color:var(--sub);line-height:1.5;white-space:pre-line}
+.check-why{font-size:11px;color:var(--hint);margin-top:3px;font-style:italic}
+.issue-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 12px;background:#F9FAFB;border-radius:10px;font-size:13px}
+.issue-row.p0{background:#FEF2F2;border:1px solid #FECACA}.issue-row.p1{background:#FFFBEB;border:1px solid #FDE68A}.issue-row.p2{background:#F0F1F5}
+.issue-row.resolved{opacity:.5;text-decoration:line-through}
+.issue-text{flex:1;min-width:0}.issue-assignee{font-size:11px;color:var(--hint)}
+.priority-btn{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:none}
+.p0-btn{background:#FEE2E2;color:var(--danger)}.p1-btn{background:#FEF3C7;color:var(--warn)}.p2-btn{background:#E5E7EB;color:var(--sub)}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.tab-bar-inner{display:flex;max-width:520px;width:100%}.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;background:none;color:var(--hint);font-size:11px;cursor:pointer;border:none}.tab-item.active{color:var(--text);font-weight:600}.tab-item svg{width:22px;height:22px}
+.empty{text-align:center;padding:3rem 1.5rem}.empty-title{font-size:18px;font-weight:600;margin:12px 0 8px}.empty-desc{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:28px}
+.inherit-toggle{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:10px;margin-bottom:14px}
+.inherit-toggle.off{background:#F9FAFB;border-color:var(--border)}
+.inherit-sw{width:40px;height:22px;border-radius:11px;background:var(--border);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.inherit-sw.on{background:var(--info)}.inherit-sw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.12)}.inherit-sw.on::after{left:20px}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:500;z-index:999;animation:fadeInOut 2s ease;pointer-events:none}
+@keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(-10px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}85%{opacity:1}100%{opacity:0}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.2/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useMemo}=React;
+const gid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const KEY='pdp-check-v8';
+function ld(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null;}catch{return null;}}
+function sv(d){localStorage.setItem(KEY,JSON.stringify(d));}
+const fmtD=ts=>{const d=new Date(ts);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+const fmtFull=ts=>fmtD(ts)+' '+new Date(ts).toTimeString().slice(0,5);
+
+const MODULES=[
+  {id:'m1',name:'产品主图',icon:'🖼️',req:'第1张：正面图+尺寸标注\n第2张：实际会议室场景图\n第3张：核心功能点图示\n第4张：配件全家福\n第5张：资质证书合集',why:'企业买家第一眼看主图决定是否继续浏览',cps:['主图5张齐全','正面图有尺寸标注','场景图真实会议室','功能图示清晰','配件全家福完整','资质证书最新','分辨率≥800×800','白底图符合规范']},
+  {id:'m2',name:'标题优化',icon:'📝',req:'品牌+型号+尺寸+核心卖点+适用场景',why:'搜索权重和客户筛选',cps:['包含品牌名','包含具体型号','包含尺寸','包含核心卖点','包含适用场景','字符数≤75字','无错别字']},
+  {id:'m3',name:'场景适配说明',icon:'🏢',req:'明确标注适合多大面积、多少人的会议室',why:'B端客户最关心"适不适合我"',cps:['标注适用面积','标注适用人数','配有场景图','多场景差异化']},
+  {id:'m4',name:'技术参数对比表',icon:'📊',req:'和竞品做功能参数横向对比，突出优势项',why:'IT部门评估时需要技术依据',cps:['参数表完整','有竞品对比','优势项突出','数据准确']},
+  {id:'m5',name:'安装服务说明',icon:'🔧',req:'免费上门安装/全国覆盖/安装流程/安装时间',why:'消除"怕麻烦"顾虑',cps:['注明免费安装','覆盖范围','安装流程','预计时间','师傅资质']},
+  {id:'m6',name:'售后保障',icon:'🛡️',req:'质保年限/响应时间/维修方式/备用机服务',why:'采购部门风险评估必看项',cps:['质保年限','响应时间','维修方式','备用机','延保选项']},
+  {id:'m7',name:'企业资质',icon:'📜',req:'3C认证/节能认证/信创目录/环保认证',why:'招投标必须的合规证明',cps:['3C认证','节能认证','环保认证','信创目录','证书清晰','证书在有效期']},
+  {id:'m8',name:'成功案例',icon:'🏆',req:'XX集团/XX政府部署了XX台的案例简述',why:'决策层信任背书',cps:['至少1个案例','客户名称/logo','部署数量','场景照片','行业代表性']},
+  {id:'m9',name:'批量采购入口',icon:'🛒',req:'引导询价/大客户通道/联系方式',why:'提高大客户询单率',cps:['询价入口明显','大客户通道','联系方式','批量优惠说明']},
+];
+
+function App(){
+  const stored=ld();
+  const [skus,setSkus]=useState(stored?.skus||[]);
+  const [records,setRecords]=useState(stored?.records||[]);
+  const [tab,setTab]=useState('skus');
+  const [showAdd,setShowAdd]=useState(false);
+  const [editSkuId,setEditSkuId]=useState(null);
+  const [inspectId,setInspectId]=useState(null);
+  const [confirm,setConfirm]=useState(null);
+  const [toast,setToast]=useState(null);
+  useEffect(()=>{sv({skus,records});},[skus,records]);
+  const showToast=m=>{setToast(m);setTimeout(()=>setToast(null),2000);};
+  const copyText=t=>{if(navigator.clipboard){navigator.clipboard.writeText(t).then(()=>showToast('✅ 已复制'));return;}const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);showToast('✅ 已复制');};
+
+  const latestRec=sid=>records.filter(r=>r.skuId===sid).sort((a,b)=>b.time-a.time)[0];
+  const now=Date.now(),weekMs=7*864e5;
+  const stats=useMemo(()=>{let ck=0,hi=0,od=0,uris=0;skus.forEach(s=>{const r=latestRec(s.id);if(r){if(now-r.time<weekMs)ck++;const open=r.issues?.filter(i=>!i.resolved)?.length||0;if(open)hi++;uris+=open;if(now-r.time>weekMs)od++;}else od++;});return{checked:ck,hasIssue:hi,overdue:od,total:skus.length,openIssues:uris};},[skus,records]);
+
+  // ========== SKU LIST ==========
+  function SkuListTab(){
+    const [filter,setFilter]=useState('all');
+    const filtered=useMemo(()=>skus.filter(s=>{const r=latestRec(s.id);if(filter==='overdue')return !r||now-r.time>weekMs;if(filter==='issue')return r?.issues?.filter(i=>!i.resolved)?.length>0;if(filter==='done')return r&&now-r.time<=weekMs;return true;}),[skus,records,filter]);
+    if(!skus.length)return(<div className="empty"><div style={{fontSize:48}}>✅</div><div className="empty-title">暂无巡检SKU</div><div className="empty-desc">点击「+ SKU」添加商品<br/>系统按9大模块逐项检查商详页<br/>未解决的问题会自动继承到下次巡检</div></div>);
+    return(<>
+      <div className="summary-row"><div className="summary-box"><div className="summary-num" style={{color:'var(--safe)'}}>{stats.checked}</div><div className="summary-label">本周已检</div></div><div className="summary-box"><div className="summary-num" style={{color:'var(--danger)'}}>{stats.overdue}</div><div className="summary-label">待巡检</div></div><div className="summary-box"><div className="summary-num" style={{color:'var(--warn)'}}>{stats.openIssues}</div><div className="summary-label">未解决问题</div></div><div className="summary-box"><div className="summary-num">{stats.total}</div><div className="summary-label">SKU总数</div></div></div>
+      {stats.overdue>0&&<div className="alert-banner warn"><div className="a-title">⚠️ {stats.overdue}个SKU超过7天未巡检</div><div className="a-text">建议每周对TOP 20 SKU完成一次商详页巡检</div></div>}
+      {stats.openIssues>0&&<div className="alert-banner info"><div className="a-title">📌 {stats.openIssues}个问题待跟进</div><div className="a-text">下次巡检时会自动继承，可在「问题清单」一键导出分配</div></div>}
+      <div className="filter-row">{[['all','全部'],['overdue','待巡检'],['issue','有问题'],['done','本周完成']].map(([k,v])=><button key={k} className={`filter-chip${filter===k?' active':''}`} onClick={()=>setFilter(k)}>{v}</button>)}</div>
+      {filtered.map(sku=>{
+        const rec=latestRec(sku.id),isOd=!rec||now-rec.time>weekMs;
+        const openIssues=rec?.issues?.filter(i=>!i.resolved)?.length||0;
+        const pc=rec?.passCount||0,pct=rec?Math.round(pc/9*100):0;
+        const p0=rec?.issues?.filter(i=>!i.resolved&&i.priority==='P0')?.length||0;
+        return(<div key={sku.id} className="card sku-list-card" onClick={()=>setInspectId(sku.id)}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span style={{fontSize:15,fontWeight:600,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sku.name}</span><span style={{background:'#F3F4F6',padding:'2px 8px',borderRadius:4,fontSize:11,fontFamily:'monospace',color:'var(--sub)'}}>{sku.code}</span></div>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+            <span style={{fontSize:12,color:'var(--hint)'}}>{sku.brand}</span>
+            {sku.url&&<a href={sku.url} target="_blank" rel="noopener" className="btn-link" onClick={e=>e.stopPropagation()}>🔗 查看商详</a>}
+            <span style={{marginLeft:'auto'}}>{isOd&&<span className="tag tag-danger">待巡检</span>}{!isOd&&openIssues>0&&<span className="tag tag-warn">{openIssues}个问题</span>}{!isOd&&openIssues===0&&rec&&<span className="tag tag-safe">通过</span>}</span>
+          </div>
+          {rec&&<><div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}><div className="progress-wrap"><div className="progress-bar" style={{width:`${pct}%`,background:pct===100?'var(--safe)':pct>=60?'var(--warn)':'var(--danger)'}}/></div><span style={{fontSize:12,fontWeight:600,fontFamily:'monospace'}}>{pc}/9</span></div>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--hint)'}}><span>上次: {fmtD(rec.time)}</span>{p0>0&&<span style={{color:'var(--danger)',fontWeight:600}}>P0×{p0}</span>}</div></>}
+          {!rec&&<div style={{fontSize:12,color:'var(--hint)'}}>尚未巡检，点击开始</div>}
+          <div style={{marginTop:8,display:'flex',gap:6}}>
+            <button className="btn-sm" style={{fontSize:11,padding:'4px 10px'}} onClick={e=>{e.stopPropagation();setEditSkuId(sku.id);}}>✏️ 编辑</button>
+            <button className="btn-danger-sm" style={{fontSize:11}} onClick={e=>{e.stopPropagation();setConfirm({title:'删除SKU',text:`删除「${sku.name}」及所有巡检记录？`,onOk:()=>{setSkus(ss=>ss.filter(s=>s.id!==sku.id));setRecords(rs=>rs.filter(r=>r.skuId!==sku.id));setConfirm(null);}});}}>删除</button>
+          </div>
+        </div>);
+      })}
+    </>);
+  }
+
+  // ========== INSPECT MODAL ==========
+  function InspectModal(){
+    const sku=skus.find(s=>s.id===inspectId);if(!sku)return null;
+    const prev=latestRec(sku.id);
+    const [inherit,setInherit]=useState(!!prev);
+    const [checks,setChecks]=useState(()=>{
+      if(prev&&inherit)return prev.checks.map(c=>({...c,subChecks:c.subChecks?.map(s=>({...s}))||[]}));
+      return MODULES.map(m=>({moduleId:m.id,status:'unchecked',subChecks:m.cps.map((_,i)=>({idx:i,done:false}))}));
+    });
+    const [issues,setIssues]=useState(()=>{
+      if(prev&&inherit)return prev.issues?.map(i=>({...i}))||[];
+      return [];
+    });
+    const [ni,setNi]=useState({mid:null,text:'',priority:'P1',assignee:''});
+    const [expanded,setExpanded]=useState(null);
+    const passCount=checks.filter(c=>c.status==='pass').length;
+    const openCount=issues.filter(i=>!i.resolved).length;
+
+    // Reset when inherit toggles
+    const toggleInherit=()=>{
+      const next=!inherit;setInherit(next);
+      if(next&&prev){setChecks(prev.checks.map(c=>({...c,subChecks:c.subChecks?.map(s=>({...s}))||[]})));setIssues(prev.issues?.map(i=>({...i}))||[]);}
+      else{setChecks(MODULES.map(m=>({moduleId:m.id,status:'unchecked',subChecks:m.cps.map((_,i)=>({idx:i,done:false}))})));setIssues([]);}
+    };
+
+    const toggleCheck=mid=>{setChecks(cs=>cs.map(c=>c.moduleId===mid?{...c,status:c.status==='unchecked'?'pass':c.status==='pass'?'issue':'unchecked'}:c));};
+    const toggleSub=(mid,idx)=>{setChecks(cs=>cs.map(c=>{if(c.moduleId!==mid)return c;const subs=c.subChecks.map(s=>s.idx===idx?{...s,done:!s.done}:s);return{...c,subChecks:subs,status:subs.every(s=>s.done)?'pass':c.status==='pass'?'unchecked':c.status};}));};
+    const addIssue=()=>{if(!ni.text.trim()||!ni.mid)return;setIssues(is=>[...is,{id:gid(),moduleId:ni.mid,text:ni.text,priority:ni.priority,assignee:ni.assignee,resolved:false,createdAt:Date.now()}]);setChecks(cs=>cs.map(c=>c.moduleId===ni.mid?{...c,status:'issue'}:c));setNi({mid:null,text:'',priority:'P1',assignee:''});};
+    const toggleResolved=(id)=>{setIssues(is=>is.map(i=>i.id===id?{...i,resolved:!i.resolved}:i));};
+    const removeIssue=id=>{const iss=issues.find(i=>i.id===id);setIssues(is=>is.filter(i=>i.id!==id));if(iss&&issues.filter(i=>i.id!==id&&i.moduleId===iss.moduleId&&!i.resolved).length===0){setChecks(cs=>cs.map(c=>c.moduleId===iss.moduleId&&c.status==='issue'?{...c,status:'unchecked'}:c));}};
+    const doSave=()=>{setRecords(rs=>[{id:gid(),skuId:sku.id,time:Date.now(),checks,issues,passCount,total:9},...rs]);setInspectId(null);};
+
+    return(<div className="modal" onClick={()=>setInspectId(null)}><div className="modal-body" onClick={e=>e.stopPropagation()}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+        <div><div style={{fontSize:16,fontWeight:600}}>{sku.name}</div><div style={{fontSize:12,color:'var(--hint)',display:'flex',gap:8,alignItems:'center'}}>{sku.code} · {sku.brand}{sku.url&&<a href={sku.url} target="_blank" rel="noopener" className="btn-link">🔗 打开商详页</a>}</div></div>
+        <button className="btn-sm" onClick={()=>setInspectId(null)}>关闭</button>
+      </div>
+
+      {/* Inherit toggle */}
+      {prev&&<div className={`inherit-toggle ${inherit?'':'off'}`}>
+        <div className={`inherit-sw ${inherit?'on':''}`} onClick={toggleInherit}/>
+        <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:inherit?'var(--info)':'var(--sub)'}}>继承上次巡检结果</div><div style={{fontSize:11,color:inherit?'var(--info)':'var(--hint)'}}>打勾状态和未解决问题自动带入，只需关注变更项</div></div>
+      </div>}
+
+      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}><div className="progress-wrap" style={{height:10}}><div className="progress-bar" style={{width:`${Math.round(passCount/9*100)}%`,background:passCount===9?'var(--safe)':'var(--accent)'}}/></div><span style={{fontSize:14,fontWeight:700,fontFamily:'monospace'}}>{passCount}/9</span>{openCount>0&&<span className="tag tag-warn" style={{fontSize:10,padding:'1px 6px'}}>{openCount}待解决</span>}</div>
+
+      {MODULES.map(mod=>{
+        const chk=checks.find(c=>c.moduleId===mod.id)||{status:'unchecked',subChecks:[]};
+        const mIs=issues.filter(i=>i.moduleId===mod.id);
+        const mOpen=mIs.filter(i=>!i.resolved).length;
+        const isExp=expanded===mod.id;
+        const sd=chk.subChecks?.filter(s=>s.done).length||0;
+        return(<div key={mod.id} className="check-module">
+          <div className="check-top" onClick={()=>setExpanded(isExp?null:mod.id)}>
+            <div className={`check-box${chk.status==='pass'?' checked':chk.status==='issue'?' issue':''}`} onClick={e=>{e.stopPropagation();toggleCheck(mod.id);}}>{chk.status==='pass'&&'✓'}{chk.status==='issue'&&'!'}</div>
+            <div className="check-info">
+              <div className="check-title"><span>{mod.icon} {mod.name}</span>{mOpen>0&&<span className="tag tag-danger" style={{fontSize:10,padding:'1px 6px'}}>{mOpen}待解决</span>}{chk.status==='pass'&&!mOpen&&<span className="tag tag-safe" style={{fontSize:10,padding:'1px 6px'}}>通过</span>}</div>
+              <div className="check-req">{mod.req}</div>
+              <div className="check-why">💡 {mod.why}</div>
+            </div>
+            <span style={{fontSize:12,color:'var(--hint)',flexShrink:0,transform:isExp?'rotate(90deg)':'none',transition:'transform .2s'}}>▶</span>
+          </div>
+          {isExp&&<div style={{marginLeft:34,marginTop:10}}>
+            <div style={{fontSize:12,color:'var(--sub)',marginBottom:6,fontWeight:500}}>检查项 ({sd}/{mod.cps.length})</div>
+            {mod.cps.map((cp,idx)=>{const done=chk.subChecks?.find(s=>s.idx===idx)?.done;return(<div key={idx} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 0',cursor:'pointer'}} onClick={()=>toggleSub(mod.id,idx)}><div style={{width:18,height:18,borderRadius:5,border:`2px solid ${done?'var(--safe)':'var(--border)'}`,background:done?'var(--safe)':'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#fff',flexShrink:0}}>{done&&'✓'}</div><span style={{fontSize:13,color:done?'var(--safe)':'var(--text)',textDecoration:done?'line-through':'none'}}>{cp}</span></div>);})}
+
+            {mIs.length>0&&<div style={{marginTop:10}}><div style={{fontSize:12,color:'var(--danger)',fontWeight:600,marginBottom:6}}>问题清单</div>
+              {mIs.sort((a,b)=>{if(a.resolved!==b.resolved)return a.resolved?1:-1;const o={P0:0,P1:1,P2:2};return o[a.priority]-o[b.priority];}).map(i=>(
+                <div key={i.id} className={`issue-row ${i.priority.toLowerCase()} ${i.resolved?'resolved':''}`}>
+                  <div style={{width:18,height:18,borderRadius:5,border:`2px solid ${i.resolved?'var(--safe)':'var(--border)'}`,background:i.resolved?'var(--safe)':'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#fff',flexShrink:0,cursor:'pointer'}} onClick={()=>toggleResolved(i.id)}>{i.resolved&&'✓'}</div>
+                  <span className={`priority-btn ${i.priority.toLowerCase()}-btn`}>{i.priority}</span>
+                  <span className="issue-text">{i.text}</span>
+                  {i.assignee&&<span className="issue-assignee">→{i.assignee}</span>}
+                  <button style={{background:'none',color:'var(--hint)',fontSize:14,padding:0}} onClick={()=>removeIssue(i.id)}>✕</button>
+                </div>
+              ))}
+            </div>}
+
+            <div style={{marginTop:10,padding:10,background:'#F9FAFB',borderRadius:10}}>
+              <div style={{fontSize:12,color:'var(--sub)',marginBottom:6}}>记录新问题</div>
+              <input type="text" value={ni.mid===mod.id?ni.text:''} placeholder="描述问题..." onFocus={()=>setNi(n=>({...n,mid:mod.id}))} onChange={e=>setNi(n=>({...n,mid:mod.id,text:e.target.value}))} style={{marginBottom:8}}/>
+              <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                <div style={{display:'flex',gap:4}}>{['P0','P1','P2'].map(p=><button key={p} className={`priority-btn ${p.toLowerCase()}-btn`} style={{opacity:ni.mid===mod.id&&ni.priority===p?1:.4}} onClick={()=>setNi(n=>({...n,mid:mod.id,priority:p}))}>{p}</button>)}</div>
+                <input type="text" placeholder="指派人" style={{width:80,padding:'6px 10px',fontSize:12}} value={ni.mid===mod.id?ni.assignee:''} onChange={e=>setNi(n=>({...n,mid:mod.id,assignee:e.target.value}))}/>
+                <button className="btn-accent" style={{fontSize:11,padding:'4px 12px'}} onClick={addIssue}>添加</button>
+              </div>
+              <div style={{fontSize:10,color:'var(--hint)',marginTop:6}}>P0=紧急修复 P1=本周修复 P2=排期优化 · 打勾=已解决</div>
+            </div>
+          </div>}
+        </div>);
+      })}
+
+      <div style={{marginTop:16}}><button className="btn-primary" onClick={doSave}>✅ 保存巡检 ({passCount}/9通过 · {openCount}个待解决)</button></div>
+    </div></div>);
+  }
+
+  // ========== ISSUES TAB ==========
+  function IssuesTab(){
+    // Collect latest open issues per SKU
+    const allIssues=useMemo(()=>{
+      const list=[];
+      skus.forEach(s=>{const r=latestRec(s.id);if(!r||!r.issues)return;r.issues.forEach(i=>{list.push({...i,skuName:s.name,skuCode:s.code,skuId:s.id,recordTime:r.time});});});
+      return list.sort((a,b)=>{if(a.resolved!==b.resolved)return a.resolved?1:-1;const o={P0:0,P1:1,P2:2};return o[a.priority]-o[b.priority];});
+    },[records,skus]);
+
+    const [filter,setFilter]=useState('open');
+    const filtered=filter==='open'?allIssues.filter(i=>!i.resolved):filter==='all'?allIssues:allIssues.filter(i=>i.priority===filter&&!i.resolved);
+    const p0=allIssues.filter(i=>!i.resolved&&i.priority==='P0').length;
+    const p1=allIssues.filter(i=>!i.resolved&&i.priority==='P1').length;
+    const p2=allIssues.filter(i=>!i.resolved&&i.priority==='P2').length;
+    const open=allIssues.filter(i=>!i.resolved).length;
+
+    // Export issues as text
+    const exportIssues=()=>{
+      const lines=filtered.map(i=>{const mod=MODULES.find(m=>m.id===i.moduleId);return`[${i.priority}] ${i.skuName} - ${mod?.name||''}: ${i.text}${i.assignee?' → '+i.assignee:''}`;});
+      copyText(lines.join('\n')||'暂无问题');
+    };
+
+    if(!allIssues.length)return(<div className="empty"><div style={{fontSize:36}}>🎉</div><div className="empty-title">暂无问题记录</div><div className="empty-desc">完成巡检并记录问题后将在此汇总</div></div>);
+    return(<>
+      <div className="summary-row"><div className="summary-box"><div className="summary-num" style={{color:'var(--danger)'}}>{p0}</div><div className="summary-label">P0 紧急</div></div><div className="summary-box"><div className="summary-num" style={{color:'var(--warn)'}}>{p1}</div><div className="summary-label">P1 本周</div></div><div className="summary-box"><div className="summary-num" style={{color:'var(--sub)'}}>{p2}</div><div className="summary-label">P2 排期</div></div><div className="summary-box"><div className="summary-num">{open}</div><div className="summary-label">待解决</div></div></div>
+      {p0>0&&<div className="alert-banner"><div className="a-title">🚨 {p0}个P0问题待紧急修复</div><div className="a-text">直接影响客户转化，需当天处理</div></div>}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+        <div className="filter-row" style={{marginBottom:0}}>{[['open','待解决'],['P0','P0'],['P1','P1'],['P2','P2'],['all','全部含已解决']].map(([k,v])=><button key={k} className={`filter-chip${filter===k?' active':''}`} onClick={()=>setFilter(k)}>{v}</button>)}</div>
+      </div>
+      <div style={{marginBottom:14}}><button className="btn-copy" onClick={exportIssues}>📋 一键复制问题清单（{filtered.length}条）</button></div>
+      {filtered.map(i=>{const mod=MODULES.find(m=>m.id===i.moduleId);return(<div key={i.id+i.skuId} className={`card ${i.resolved?'':''}` } style={{padding:'12px 16px',opacity:i.resolved?.5:1}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}><span className={`priority-btn ${i.priority.toLowerCase()}-btn`}>{i.priority}</span><span style={{fontSize:14,fontWeight:600,flex:1,textDecoration:i.resolved?'line-through':'none'}}>{i.text}</span>{i.resolved&&<span className="tag tag-safe" style={{fontSize:10,padding:'1px 6px'}}>已解决</span>}</div>
+        <div style={{display:'flex',gap:10,fontSize:12,color:'var(--sub)',flexWrap:'wrap'}}><span>📦 {i.skuName}</span><span>{mod?.icon} {mod?.name}</span>{i.assignee&&<span>→ {i.assignee}</span>}<span style={{marginLeft:'auto',color:'var(--hint)'}}>{fmtD(i.createdAt||i.recordTime)}</span></div>
+      </div>);})}
+    </>);
+  }
+
+  // ========== HISTORY TAB ==========
+  function HistoryTab(){
+    const sorted=useMemo(()=>[...records].sort((a,b)=>b.time-a.time),[records]);
+    if(!sorted.length)return(<div className="empty"><div style={{fontSize:36}}>📝</div><div className="empty-title">暂无记录</div></div>);
+    return(<><div className="section-title">📋 巡检历史</div>{sorted.map(rec=>{const sku=skus.find(s=>s.id===rec.skuId);const open=rec.issues?.filter(i=>!i.resolved)?.length||0;const p0=rec.issues?.filter(i=>!i.resolved&&i.priority==='P0')?.length||0;
+      return(<div key={rec.id} className="card" style={{padding:'12px 16px'}}><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}><span style={{fontWeight:600,fontSize:14}}>{sku?.name||'已删除'}</span><span style={{marginLeft:'auto',fontSize:11,color:'var(--hint)'}}>{fmtFull(rec.time)}</span></div><div style={{display:'flex',alignItems:'center',gap:10}}><div className="progress-wrap" style={{flex:1,height:6}}><div className="progress-bar" style={{width:`${Math.round((rec.passCount||0)/9*100)}%`,background:rec.passCount===9?'var(--safe)':'var(--accent)'}}/></div><span style={{fontSize:12,fontFamily:'monospace'}}>{rec.passCount||0}/9</span>{open>0&&<span className="tag tag-warn" style={{fontSize:10,padding:'1px 6px'}}>{open}待解决</span>}{p0>0&&<span className="tag tag-danger" style={{fontSize:10,padding:'1px 6px'}}>P0×{p0}</span>}{open===0&&<span className="tag tag-safe" style={{fontSize:10,padding:'1px 6px'}}>通过</span>}</div></div>);
+    })}<div style={{textAlign:'center',marginTop:16}}><button className="btn-danger-sm" style={{padding:'8px 20px',fontSize:13,borderRadius:20}} onClick={()=>setConfirm({title:'清空',text:'清空所有巡检历史？',onOk:()=>{setRecords([]);setConfirm(null);}})}>清空历史</button></div></>);
+  }
+
+  // ========== ADD/EDIT SKU ==========
+  function SkuModal(){
+    const isEdit=!!editSkuId;
+    const ex=isEdit?skus.find(s=>s.id===editSkuId):null;
+    const [name,setName]=useState(ex?.name||'');
+    const [code,setCode]=useState(ex?.code||'');
+    const [brand,setBrand]=useState(ex?.brand||'');
+    const [url,setUrl]=useState(ex?.url||'');
+    const close=()=>{setShowAdd(false);setEditSkuId(null);};
+    const doSave=()=>{
+      if(!name.trim())return;
+      if(isEdit){setSkus(ss=>ss.map(s=>s.id===editSkuId?{...s,name,code,brand,url}:s));}
+      else{setSkus(ss=>[...ss,{id:gid(),name,code,brand,url}]);}
+      close();
+    };
+    return(<div className="modal" onClick={close}><div className="modal-body" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}>
+      <div className="modal-title">{isEdit?'编辑':'添加'}SKU</div>
+      <div className="field"><div className="field-label">商品名称 *</div><input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="如: MAXHUB V6经典版 75英寸"/></div>
+      <div className="field-row"><div className="field"><div className="field-label">SKU编码</div><input type="text" value={code} onChange={e=>setCode(e.target.value)} placeholder="100038374856"/></div><div className="field"><div className="field-label">品牌</div><input type="text" value={brand} onChange={e=>setBrand(e.target.value)} placeholder="MAXHUB"/></div></div>
+      <div className="field"><div className="field-label">商详页链接</div><input type="url" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://item.jd.com/..."/></div>
+      <div style={{fontSize:11,color:'var(--hint)',marginBottom:14}}>填写链接后，巡检时可一键跳转到实际商详页核对</div>
+      <button className="btn-primary" onClick={doSave}>{isEdit?'保存':'添加'}</button>
+    </div></div>);
+  }
+
+  return(<div className="app">
+    <div className="topbar"><span className="page-title">✅ 商详巡检</span>{stats.openIssues>0&&<span className="header-badge" style={{background:'var(--warn)'}}>{stats.openIssues}问题</span>}{stats.overdue>0&&stats.openIssues===0&&<span className="header-badge" style={{background:'var(--hint)'}}>{stats.overdue}待检</span>}<button className="btn-accent" onClick={()=>setShowAdd(true)}>+ SKU</button></div>
+    {tab==='skus'&&<SkuListTab/>}{tab==='issues'&&<IssuesTab/>}{tab==='history'&&<HistoryTab/>}
+    {inspectId&&<InspectModal/>}{(showAdd||editSkuId)&&<SkuModal/>}
+    {confirm&&<div className="confirm-modal" onClick={()=>setConfirm(null)}><div className="confirm-box" onClick={e=>e.stopPropagation()}><h3>{confirm.title}</h3><p>{confirm.text}</p><div className="confirm-btns"><button className="confirm-cancel" onClick={()=>setConfirm(null)}>取消</button><button className="confirm-ok" onClick={confirm.onOk}>确认</button></div></div></div>}
+    {toast&&<div className="toast">{toast}</div>}
+    <div className="tab-bar"><div className="tab-bar-inner">
+      <button className={`tab-item${tab==='skus'?' active':''}`} onClick={()=>setTab('skus')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>SKU总览</button>
+      <button className={`tab-item${tab==='issues'?' active':''}`} onClick={()=>setTab('issues')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>问题清单</button>
+      <button className={`tab-item${tab==='history'?' active':''}`} onClick={()=>setTab('history')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>巡检记录</button>
+    </div></div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>场景方案包 - 会议平板解决方案</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#EDEEF2;--card:#FFFFFF;--text:#1B1F3B;--sub:#6B7280;--hint:#9CA3AF;--border:#E5E7EB;--accent:#2563EB;--accent-bg:#EFF6FF;--accent2:#7C3AED;--accent2-bg:#F5F3FF;--jd:#E4393C;--tmall:#FF6A00;--sn:#D4900A;--danger:#DC2626;--safe:#16A34A;--warn:#D97706;--radius:14px}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;overflow-x:hidden}
+input,textarea,select,button{font-family:inherit;font-size:14px}
+input[type=text],input[type=number],textarea,select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+button{cursor:pointer;border:none;outline:none}
+.app{max-width:560px;margin:0 auto;min-height:100vh;padding:0 16px 90px}
+.topbar{display:flex;align-items:center;padding:16px 0 6px;gap:10px;position:sticky;top:0;background:var(--bg);z-index:50}
+.page-title{font-size:20px;font-weight:700;flex:1}
+.card{background:var(--card);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.btn-primary{background:var(--text);color:#fff;border-radius:50px;padding:13px 32px;font-size:15px;font-weight:600;width:100%;transition:opacity .15s}
+.btn-primary:active{opacity:.85}.btn-primary:disabled{background:var(--border)}
+.btn-sm{padding:6px 16px;font-size:13px;font-weight:500;border-radius:20px;background:#F3F4F6;color:var(--text)}
+.btn-accent{background:var(--accent-bg);color:var(--accent);font-weight:600;border-radius:20px;padding:5px 14px;font-size:12px}
+.btn-accent2{background:var(--accent2-bg);color:var(--accent2);font-weight:600;border-radius:20px;padding:5px 14px;font-size:12px}
+.btn-danger{background:#FEE2E2;color:var(--danger);font-weight:500;border-radius:10px;padding:3px 10px;font-size:11px}
+.btn-back{background:none;font-size:20px;padding:0;color:var(--text);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px}
+.btn-back:hover{background:#F3F4F6}
+.field{margin-bottom:14px}.field-label{font-size:13px;color:var(--sub);margin-bottom:5px;font-weight:500}
+.field-hint{font-size:11px;color:var(--hint);margin-top:3px}
+.chip-group{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 14px;border-radius:20px;font-size:13px;border:1.5px solid var(--border);background:#fff;color:var(--sub);transition:all .15s;user-select:none}
+.chip.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);font-weight:600}
+.tag{display:inline-block;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.tag-brand{color:var(--accent);background:var(--accent-bg)}
+.tag-scene{color:var(--accent2);background:var(--accent2-bg)}
+.tag-size{color:var(--warn);background:#FFFBEB}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.empty{text-align:center;padding:3rem 1rem}.empty-title{font-size:18px;font-weight:600;margin:12px 0 8px}.empty-desc{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:24px}
+.confirm-modal{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);padding:20px}
+.confirm-box{background:#fff;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-box h3{font-size:16px;margin-bottom:8px}.confirm-box p{font-size:14px;color:var(--sub);margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}.confirm-btns button{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600}
+.confirm-cancel{background:#F3F4F6;color:var(--text)}.confirm-ok{background:var(--danger);color:#fff}
+.sku-card{cursor:pointer;transition:box-shadow .2s}.sku-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.sku-card-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.sku-card-name{font-size:15px;font-weight:600;flex:1;line-height:1.4}
+.sku-card-meta{font-size:12px;color:var(--hint);margin-bottom:8px}
+.sku-card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.sku-card-price{font-size:18px;font-weight:700;color:var(--jd)}
+.sku-card-specs{font-size:12px;color:var(--sub);line-height:1.7;margin-top:6px}
+.match-score{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700}
+.score-high{background:#DCFCE7;color:var(--safe)}
+.score-mid{background:#FEF3C7;color:var(--warn)}
+.score-low{background:#FEE2E2;color:var(--danger)}
+.solution-section{margin-bottom:20px}
+.solution-title{font-size:16px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--accent)}
+.solution-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid #F3F4F6}
+.solution-row:last-child{border-bottom:none}
+.solution-label{color:var(--sub)}.solution-value{font-weight:500;text-align:right;max-width:60%}
+.price-radar-box{background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px 14px;margin-top:10px}
+.price-radar-box .pr-title{font-size:12px;font-weight:600;color:var(--tmall);margin-bottom:6px}
+.price-radar-box .pr-row{font-size:12px;color:var(--sub);display:flex;justify-content:space-between;padding:3px 0}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:center;padding:6px 0 max(6px,env(safe-area-inset-bottom));z-index:100}
+.tab-bar-inner{display:flex;max-width:560px;width:100%}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;background:none;color:var(--hint);font-size:10px}
+.tab-item.active{color:var(--accent);font-weight:600}
+.tab-item svg{width:22px;height:22px}
+.tier-label{display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;margin-bottom:8px}
+.tier-economy{background:#DCFCE7;color:var(--safe)}.tier-standard{background:var(--accent-bg);color:var(--accent)}.tier-premium{background:var(--accent2-bg);color:var(--accent2)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+const gid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const KEY="scene-solution-skus";
+const RADAR_KEY="price-radar-v4";
+
+const BRANDS=["MAXHUB","华为","鸿合","皓丽","海信","创维","TCL","联想","其他"];
+const SIZES=["55","65","75","86","98+"];
+const SCENES=["小型洽谈室","标准会议室","大型会议室","董事会/展厅","培训教室","远程协作工位"];
+const INDUSTRIES=["中小企业","中型企业","大型企业/集团","政府/国企","教育机构","医疗机构"];
+const NEEDS=["视频会议","无线投屏","智能白板","录播回放","多屏联动","互动教学"];
+const INSTALL_TYPES=["壁挂安装","移动支架","桌面支架","嵌入式"];
+const OS_OPTIONS=["Android","Windows","双系统","自研系统"];
+const CAMERA_OPTIONS=["内置800万","内置1300万","内置4K","需外接","无"];
+const MIC_OPTIONS=["内置全向麦","内置阵列麦","需外接","无"];
+const CAST_OPTIONS=["自带投屏","支持Miracast","需外接投屏器","不支持"];
+const VIDEO_COMPAT=["Zoom","腾讯会议","钉钉","飞书","华为WeLink","Microsoft Teams"];
+const ACCESSORIES=["无线投屏器","4K摄像头","全向麦克风","阵列麦克风","智能跟踪摄像头","移动支架","壁挂支架","触控笔","录播系统","专业音响","智能控制系统","桌面支架"];
+
+function loadSkus(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return[]}}
+function saveSkus(d){localStorage.setItem(KEY,JSON.stringify(d))}
+function loadRadar(){try{return JSON.parse(localStorage.getItem(RADAR_KEY))||{dates:[]}}catch{return{dates:[]}}}
+
+function getRadarPrices(skuCode,skuName){
+  const radar=loadRadar();
+  if(!radar.dates||!radar.dates.length)return null;
+  const latest=radar.dates[0];
+  if(!latest.groups)return null;
+  const match=latest.groups.find(g=>(skuCode&&g.code&&g.code===skuCode)||(skuName&&g.name&&g.name.includes(skuName)));
+  if(!match)return null;
+  return{dateLabel:latest.label,group:match};
+}
+
+function Confirm({title,text,onOk,onCancel}){
+  return(<div className="confirm-modal" onClick={onCancel}><div className="confirm-box" onClick={e=>e.stopPropagation()}>
+    <h3>{title}</h3><p>{text}</p><div className="confirm-btns"><button className="confirm-cancel" onClick={onCancel}>取消</button><button className="confirm-ok" onClick={onOk}>确认</button></div>
+  </div></div>);
+}
+
+function PriceRadarCard({skuCode,skuName}){
+  const data=getRadarPrices(skuCode,skuName);
+  if(!data)return(<div className="price-radar-box" style={{background:"#F9FAFB",border:"1px solid var(--border)"}}><div style={{fontSize:12,color:"var(--hint)",textAlign:"center"}}>价格雷达暂无此SKU的数据<br/><span style={{fontSize:11}}>请在价格雷达中添加对应监控</span></div></div>);
+  const PF={jd:"京东",tmall:"天猫",suning:"苏宁",pdd:"拼多多",other:"其他"};
+  return(<div className="price-radar-box">
+    <div className="pr-title">📡 价格雷达数据（{data.dateLabel}）</div>
+    {data.group.items?.map((i,idx)=>{const fp=Math.max(0,i.price-(i.discount||0));return(
+      <div key={idx} className="pr-row"><span>{PF[i.platform]||i.platform}{i.isBench?" (基准)":""}</span><span style={{fontWeight:600,color:fp>0?"var(--jd)":"var(--hint)"}}>{fp>0?`¥${fp.toLocaleString()}`:"待填价"}{i.discount>0?` (优惠-${i.discount})`:""}</span></div>
+    );})}
+  </div>);
+}
+
+function matchScore(sku,req){
+  let score=0;let max=0;
+  if(req.minArea&&req.maxArea){max+=30;const sa=parseInt(sku.minArea)||0;const sb=parseInt(sku.maxArea)||999;const ra=parseInt(req.minArea);const rb=parseInt(req.maxArea);if(ra>=sa&&ra<=sb)score+=30;else if(Math.abs(ra-sa)<10||Math.abs(rb-sb)<10)score+=15;}
+  if(req.people){max+=25;const sp=parseInt(sku.maxPeople)||0;const rp=parseInt(req.people);if(rp<=sp&&rp>=parseInt(sku.minPeople||0))score+=25;else if(Math.abs(rp-sp)<5)score+=12;}
+  if(req.budgetMax){max+=20;const p=parseInt(sku.price)||0;const b=parseInt(req.budgetMax);if(p<=b)score+=20;else if(p<=b*1.15)score+=10;}
+  if(req.scenes&&req.scenes.length){max+=15;const overlap=(sku.scenes||[]).filter(s=>req.scenes.includes(s)).length;if(overlap>0)score+=Math.round(15*(overlap/req.scenes.length));}
+  if(req.brand){max+=10;if(sku.brand===req.brand)score+=10;}
+  if(req.needs&&req.needs.length){max+=20;let needScore=0;req.needs.forEach(n=>{if(n==="视频会议"&&(sku.camera||"").includes("内置"))needScore++;if(n==="无线投屏"&&(sku.cast||"").includes("自带"))needScore++;if(n==="智能白板")needScore++;if(n==="录播回放")needScore+=0.5;if(n==="多屏联动")needScore+=0.5;if(n==="互动教学")needScore+=0.5;});score+=Math.round(20*Math.min(1,needScore/req.needs.length));}
+  return max>0?Math.round(score/max*100):50;
+}
+
+function generateSolution(req,skus){
+  const scored=skus.map(s=>({...s,score:matchScore(s,req)})).filter(s=>s.score>20).sort((a,b)=>b.score-a.score);
+  const economy=scored.find(s=>parseInt(s.price||0)<=parseInt(req.budgetMax||999999)*0.6);
+  const standard=scored[0];
+  const premium=scored.find(s=>parseInt(s.price||0)>parseInt(req.budgetMax||0)*0.8&&s.score>40);
+  const tiers=[];
+  if(economy&&economy.id!==(standard||{}).id)tiers.push({tier:"经济版",sku:economy});
+  if(standard)tiers.push({tier:"标准版（推荐）",sku:standard});
+  if(premium&&premium.id!==(standard||{}).id)tiers.push({tier:"旗舰版",sku:premium});
+  if(tiers.length===0&&scored.length>0)tiers.push({tier:"推荐方案",sku:scored[0]});
+  return{tiers,allMatched:scored.slice(0,8)};
+}
+
+function App(){
+  const [skus,setSkus]=useState(loadSkus);
+  const [tab,setTab]=useState("skudb");
+  const [view,setView]=useState("list");
+  const [sel,setSel]=useState(null);
+  const [confirmAction,setConfirmAction]=useState(null);
+
+  const [f,setF]=useState({});
+  const setField=(k,v)=>setF(p=>({...p,[k]:v}));
+  const toggleArr=(k,v)=>setF(p=>{const arr=p[k]||[];return{...p,[k]:arr.includes(v)?arr.filter(x=>x!==v):[...arr,v]};});
+
+  const [req,setReq]=useState({});
+  const setReqField=(k,v)=>setReq(p=>({...p,[k]:v}));
+  const toggleReqArr=(k,v)=>setReq(p=>{const arr=p[k]||[];return{...p,[k]:arr.includes(v)?arr.filter(x=>x!==v):[...arr,v]};});
+
+  const [solution,setSolution]=useState(null);
+  const [searchQ,setSearchQ]=useState("");
+
+  useEffect(()=>{saveSkus(skus)},[skus]);
+
+  const curSku=skus.find(s=>s.id===sel);
+  const filteredSkus=searchQ?skus.filter(s=>(s.name||"").includes(searchQ)||(s.brand||"").includes(searchQ)||(s.code||"").includes(searchQ)||(s.model||"").includes(searchQ)):skus;
+
+  const go=(v,id)=>{setView(v);if(id!==undefined)setSel(id);};
+
+  const saveSku=()=>{
+    if(!f.name)return;
+    if(f.id){setSkus(p=>p.map(s=>s.id===f.id?{...f}:s));}
+    else{const ns={...f,id:gid(),ts:Date.now()};setSkus(p=>[ns,...p]);}
+    setF({});go("list");
+  };
+  const editSku=(s)=>{setF({...s});go("form");};
+  const delSku=(id)=>{setSkus(p=>p.filter(s=>s.id!==id));if(sel===id)setSel(null);setConfirmAction(null);go("list");};
+
+  const doMatch=()=>{
+    const result=generateSolution(req,skus);
+    setSolution(result);
+    setTab("solution");setView("result");
+  };
+
+  const exportSolution=()=>{
+    if(!solution)return;
+    const rows=[];
+    solution.tiers.forEach(t=>{
+      const s=t.sku;const radar=getRadarPrices(s.code,s.name);
+      rows.push({方案档次:t.tier,SKU编码:s.code||"",品牌:s.brand||"",型号:s.model||"",尺寸:s.size?s.size+"寸":"",商品名称:s.name,京东售价:s.price||"",适用面积:`${s.minArea||"?"}~${s.maxArea||"?"}㎡`,适用人数:`${s.minPeople||"?"}~${s.maxPeople||"?"}人`,安装方式:(s.installTypes||[]).join("/"),推荐配件:(s.accessories||[]).join("、"),核心卖点:s.sellingPoints||"",匹配度:s.score+"%"});
+    });
+    const ws=XLSX.utils.json_to_sheet(rows);
+    ws["!cols"]=[{wch:14},{wch:14},{wch:10},{wch:16},{wch:8},{wch:30},{wch:10},{wch:14},{wch:14},{wch:14},{wch:24},{wch:30},{wch:8}];
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"方案推荐");
+    XLSX.writeFile(wb,`场景方案_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  return(<div className="app">
+    {confirmAction&&<Confirm title={confirmAction.title} text={confirmAction.text} onOk={confirmAction.action} onCancel={()=>setConfirmAction(null)}/>}
+
+    <div className="topbar">
+      <div className="page-title">{tab==="skudb"?"SKU数据库":tab==="match"?"需求匹配":"方案输出"}</div>
+      {tab==="skudb"&&view==="list"&&<span style={{fontSize:12,color:"var(--hint)"}}>{skus.length} 个SKU</span>}
+    </div>
+
+    {/* ===== SKU DATABASE ===== */}
+    {tab==="skudb"&&view==="list"&&(<div>
+      <div style={{display:"flex",gap:8,marginBottom:14}}>
+        <input type="text" value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="搜索品牌/型号/名称..." style={{flex:1}}/>
+        <button className="btn-sm" style={{background:"var(--text)",color:"#fff",fontWeight:600,flexShrink:0}} onClick={()=>{setF({});go("form");}}>+ 新建</button>
+      </div>
+
+      {filteredSkus.length===0&&!searchQ&&(<div className="empty">
+        <div style={{fontSize:48,opacity:.3}}>📦</div>
+        <div className="empty-title">SKU数据库为空</div>
+        <div className="empty-desc">录入你负责的会议平板SKU信息<br/>包括品牌、尺寸、参数、价格、适用场景等<br/>后续需求匹配和方案生成都依赖这些数据</div>
+        <button className="btn-primary" style={{maxWidth:300,margin:"0 auto"}} onClick={()=>{setF({});go("form");}}>录入第一个SKU</button>
+      </div>)}
+
+      {filteredSkus.length===0&&searchQ&&<div style={{textAlign:"center",padding:"2rem",color:"var(--hint)"}}>没有找到匹配的SKU</div>}
+
+      {filteredSkus.map(s=>(<div key={s.id} className="card sku-card" onClick={()=>go("detail",s.id)}>
+        <div className="sku-card-header">
+          <div className="sku-card-name">{s.name||s.model||"未命名"}</div>
+          {s.price&&<span className="sku-card-price">¥{parseInt(s.price).toLocaleString()}</span>}
+        </div>
+        <div className="sku-card-tags">
+          <span className="tag tag-brand">{s.brand||"未知品牌"}</span>
+          {s.size&&<span className="tag tag-size">{s.size}寸</span>}
+          {(s.scenes||[]).slice(0,2).map((sc,i)=><span key={i} className="tag tag-scene">{sc}</span>)}
+        </div>
+        <div className="sku-card-specs">
+          {s.resolution&&<span>{s.resolution} · </span>}
+          {s.os&&<span>{s.os} · </span>}
+          {s.camera&&<span>摄像头:{s.camera} · </span>}
+          {s.minPeople&&s.maxPeople&&<span>{s.minPeople}-{s.maxPeople}人</span>}
+        </div>
+      </div>))}
+    </div>)}
+
+    {/* SKU FORM */}
+    {tab==="skudb"&&view==="form"&&(<div>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20}}>
+        <button className="btn-back" onClick={()=>go("list")}>←</button>
+        <span style={{fontSize:18,fontWeight:700}}>{f.id?"编辑SKU":"录入新SKU"}</span>
+      </div>
+
+      <div className="card" style={{background:"var(--accent-bg)",border:"none",fontSize:13,color:"var(--accent)",marginBottom:16}}>
+        💡 以下信息越完整，需求匹配和方案推荐越准确
+      </div>
+
+      <div style={{fontSize:14,fontWeight:700,color:"var(--accent)",marginBottom:10,marginTop:4}}>📌 基础信息</div>
+      <div className="field"><div className="field-label">商品名称 *</div><input type="text" value={f.name||""} onChange={e=>setField("name",e.target.value)} placeholder="如：MAXHUB V7经典版 75英寸 4K会议平板一体机"/></div>
+      <div style={{display:"flex",gap:10}}>
+        <div className="field" style={{flex:1}}><div className="field-label">SKU编码</div><input type="text" value={f.code||""} onChange={e=>setField("code",e.target.value)} placeholder="京东SKU ID"/></div>
+        <div className="field" style={{flex:1}}><div className="field-label">型号</div><input type="text" value={f.model||""} onChange={e=>setField("model",e.target.value)} placeholder="如 V7-C75"/></div>
+      </div>
+      <div className="field"><div className="field-label">品牌</div><div className="chip-group">{BRANDS.map(b=><button key={b} className={`chip ${f.brand===b?"active":""}`} onClick={()=>setField("brand",b)}>{b}</button>)}</div></div>
+      <div style={{display:"flex",gap:10}}>
+        <div className="field" style={{flex:1}}><div className="field-label">尺寸（寸）</div><div className="chip-group">{SIZES.map(s=><button key={s} className={`chip ${f.size===s?"active":""}`} onClick={()=>setField("size",s)}>{s}</button>)}</div></div>
+        <div className="field" style={{flex:1}}><div className="field-label">京东售价（元）</div><input type="number" value={f.price||""} onChange={e=>setField("price",e.target.value)} placeholder="如 18999"/></div>
+      </div>
+
+      <div className="divider"/>
+      <div style={{fontSize:14,fontWeight:700,color:"var(--accent)",marginBottom:10}}>⚙️ 技术参数</div>
+      <div style={{display:"flex",gap:10}}>
+        <div className="field" style={{flex:1}}><div className="field-label">分辨率</div><select value={f.resolution||""} onChange={e=>setField("resolution",e.target.value)}><option value="">选择</option><option>1080P</option><option>4K</option><option>8K</option></select></div>
+        <div className="field" style={{flex:1}}><div className="field-label">操作系统</div><div className="chip-group">{OS_OPTIONS.map(o=><button key={o} className={`chip ${f.os===o?"active":""}`} style={{padding:"5px 10px",fontSize:12}} onClick={()=>setField("os",o)}>{o}</button>)}</div></div>
+      </div>
+      <div className="field"><div className="field-label">摄像头</div><div className="chip-group">{CAMERA_OPTIONS.map(c=><button key={c} className={`chip ${f.camera===c?"active":""}`} onClick={()=>setField("camera",c)}>{c}</button>)}</div></div>
+      <div className="field"><div className="field-label">麦克风</div><div className="chip-group">{MIC_OPTIONS.map(m=><button key={m} className={`chip ${f.mic===m?"active":""}`} onClick={()=>setField("mic",m)}>{m}</button>)}</div></div>
+      <div className="field"><div className="field-label">无线投屏</div><div className="chip-group">{CAST_OPTIONS.map(c=><button key={c} className={`chip ${f.cast===c?"active":""}`} onClick={()=>setField("cast",c)}>{c}</button>)}</div></div>
+      <div className="field"><div className="field-label">兼容视频会议平台</div><div className="chip-group">{VIDEO_COMPAT.map(v=><button key={v} className={`chip ${(f.videoCompat||[]).includes(v)?"active":""}`} onClick={()=>toggleArr("videoCompat",v)}>{v}</button>)}</div></div>
+
+      <div className="divider"/>
+      <div style={{fontSize:14,fontWeight:700,color:"var(--accent)",marginBottom:10}}>🎯 场景适配</div>
+      <div className="field"><div className="field-label">适用场景（多选）</div><div className="chip-group">{SCENES.map(s=><button key={s} className={`chip ${(f.scenes||[]).includes(s)?"active":""}`} onClick={()=>toggleArr("scenes",s)}>{s}</button>)}</div></div>
+      <div style={{display:"flex",gap:10}}>
+        <div className="field" style={{flex:1}}><div className="field-label">适用面积（㎡）</div><div style={{display:"flex",gap:6,alignItems:"center"}}><input type="number" value={f.minArea||""} onChange={e=>setField("minArea",e.target.value)} placeholder="最小"/><span style={{color:"var(--hint)"}}>~</span><input type="number" value={f.maxArea||""} onChange={e=>setField("maxArea",e.target.value)} placeholder="最大"/></div></div>
+      </div>
+      <div style={{display:"flex",gap:10}}>
+        <div className="field" style={{flex:1}}><div className="field-label">适用人数</div><div style={{display:"flex",gap:6,alignItems:"center"}}><input type="number" value={f.minPeople||""} onChange={e=>setField("minPeople",e.target.value)} placeholder="最少"/><span style={{color:"var(--hint)"}}>~</span><input type="number" value={f.maxPeople||""} onChange={e=>setField("maxPeople",e.target.value)} placeholder="最多"/></div></div>
+      </div>
+      <div className="field"><div className="field-label">安装方式（多选）</div><div className="chip-group">{INSTALL_TYPES.map(t=><button key={t} className={`chip ${(f.installTypes||[]).includes(t)?"active":""}`} onClick={()=>toggleArr("installTypes",t)}>{t}</button>)}</div></div>
+
+      <div className="divider"/>
+      <div style={{fontSize:14,fontWeight:700,color:"var(--accent)",marginBottom:10}}>📎 商务信息</div>
+      <div className="field"><div className="field-label">推荐搭配配件（多选）</div><div className="chip-group">{ACCESSORIES.map(a=><button key={a} className={`chip ${(f.accessories||[]).includes(a)?"active":""}`} style={{fontSize:12,padding:"5px 10px"}} onClick={()=>toggleArr("accessories",a)}>{a}</button>)}</div></div>
+      <div style={{display:"flex",gap:10}}>
+        <div className="field" style={{flex:1}}><div className="field-label">质保（年）</div><input type="number" value={f.warranty||""} onChange={e=>setField("warranty",e.target.value)} placeholder="如 3"/></div>
+        <div className="field" style={{flex:1}}><div className="field-label">目标行业</div><div className="chip-group">{["企业","政府","教育","医疗"].map(i=><button key={i} className={`chip ${(f.targetIndustry||[]).includes(i)?"active":""}`} style={{fontSize:12,padding:"4px 10px"}} onClick={()=>toggleArr("targetIndustry",i)}>{i}</button>)}</div></div>
+      </div>
+      <div className="field"><div className="field-label">核心卖点（每行一个）</div><textarea value={f.sellingPoints||""} onChange={e=>setField("sellingPoints",e.target.value)} rows={3} placeholder="如：&#10;一体化设计，开机即用&#10;4K超高清触控屏&#10;内置高清摄像头+阵列麦"/></div>
+      <div className="field"><div className="field-label">商品链接</div><input type="text" value={f.url||""} onChange={e=>setField("url",e.target.value)} placeholder="京东商品页链接"/></div>
+      <div className="field"><div className="field-label">备注</div><textarea value={f.notes||""} onChange={e=>setField("notes",e.target.value)} rows={2} placeholder="其他需要记录的信息"/></div>
+
+      <div style={{marginTop:20}}><button className="btn-primary" onClick={saveSku} disabled={!f.name}>{f.id?"保存修改":"录入SKU"}</button></div>
+    </div>)}
+
+    {/* SKU DETAIL */}
+    {tab==="skudb"&&view==="detail"&&curSku&&(<div>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+        <button className="btn-back" onClick={()=>go("list")}>←</button>
+        <span style={{fontSize:18,fontWeight:700,flex:1,lineHeight:1.3}}>{curSku.name}</span>
+      </div>
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        <button className="btn-accent" onClick={()=>editSku(curSku)}>编辑</button>
+        <button className="btn-danger" onClick={()=>setConfirmAction({title:"删除SKU",text:`确定删除「${curSku.name}」？`,action:()=>delSku(curSku.id)})}>删除</button>
+      </div>
+
+      <div className="card">
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
+          <span className="tag tag-brand">{curSku.brand}</span>
+          {curSku.size&&<span className="tag tag-size">{curSku.size}寸</span>}
+          {(curSku.scenes||[]).map((s,i)=><span key={i} className="tag tag-scene">{s}</span>)}
+        </div>
+        {[["SKU编码",curSku.code],["型号",curSku.model],["京东售价",curSku.price?`¥${parseInt(curSku.price).toLocaleString()}`:""],["分辨率",curSku.resolution],["操作系统",curSku.os],["摄像头",curSku.camera],["麦克风",curSku.mic],["无线投屏",curSku.cast],["视频会议兼容",(curSku.videoCompat||[]).join("、")],["适用面积",curSku.minArea&&curSku.maxArea?`${curSku.minArea}~${curSku.maxArea}㎡`:""],["适用人数",curSku.minPeople&&curSku.maxPeople?`${curSku.minPeople}~${curSku.maxPeople}人`:""],["安装方式",(curSku.installTypes||[]).join("、")],["推荐配件",(curSku.accessories||[]).join("、")],["质保",curSku.warranty?curSku.warranty+"年":""],["目标行业",(curSku.targetIndustry||[]).join("、")]].filter(([,v])=>v).map(([k,v])=>(
+          <div key={k} className="solution-row"><span className="solution-label">{k}</span><span className="solution-value">{v}</span></div>
+        ))}
+        {curSku.sellingPoints&&<div style={{marginTop:10}}><div style={{fontSize:12,color:"var(--sub)",marginBottom:4}}>核心卖点</div><div style={{fontSize:13,color:"var(--text)",lineHeight:1.8,whiteSpace:"pre-line"}}>{curSku.sellingPoints}</div></div>}
+        {curSku.url&&<div style={{marginTop:8}}><a href={curSku.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:"var(--accent)"}}>查看商品页 →</a></div>}
+      </div>
+
+      <PriceRadarCard skuCode={curSku.code} skuName={curSku.name}/>
+    </div>)}
+
+    {/* ===== MATCH ===== */}
+    {tab==="match"&&view==="list"&&(<div>
+      {skus.length===0?(<div className="empty">
+        <div style={{fontSize:48,opacity:.3}}>📦</div>
+        <div className="empty-title">请先录入SKU数据</div>
+        <div className="empty-desc">切换到「SKU数据库」录入你的产品信息后<br/>才能进行需求匹配和方案推荐</div>
+      </div>):(<>
+        <div className="card" style={{background:"var(--accent-bg)",border:"1px solid #BFDBFE",marginBottom:16}}>
+          <div style={{fontSize:14,fontWeight:700,color:"var(--accent)",marginBottom:4}}>🎯 填写客户需求</div>
+          <div style={{fontSize:12,color:"var(--accent)"}}>系统将从你的 {skus.length} 个SKU中智能匹配推荐</div>
+        </div>
+
+        <div className="field"><div className="field-label">场景类型</div><div className="chip-group">{SCENES.map(s=><button key={s} className={`chip ${(req.scenes||[]).includes(s)?"active":""}`} onClick={()=>toggleReqArr("scenes",s)}>{s}</button>)}</div></div>
+        <div style={{display:"flex",gap:10}}>
+          <div className="field" style={{flex:1}}><div className="field-label">会议室面积（㎡）</div><div style={{display:"flex",gap:6,alignItems:"center"}}><input type="number" value={req.minArea||""} onChange={e=>setReqField("minArea",e.target.value)} placeholder="最小"/><span style={{color:"var(--hint)"}}>~</span><input type="number" value={req.maxArea||""} onChange={e=>setReqField("maxArea",e.target.value)} placeholder="最大"/></div></div>
+        </div>
+        <div className="field"><div className="field-label">参会人数</div><input type="number" value={req.people||""} onChange={e=>setReqField("people",e.target.value)} placeholder="如 12"/></div>
+        <div className="field"><div className="field-label">核心需求（多选）</div><div className="chip-group">{NEEDS.map(n=><button key={n} className={`chip ${(req.needs||[]).includes(n)?"active":""}`} onClick={()=>toggleReqArr("needs",n)}>{n}</button>)}</div></div>
+        <div style={{display:"flex",gap:10}}>
+          <div className="field" style={{flex:1}}><div className="field-label">预算上限（元）</div><input type="number" value={req.budgetMax||""} onChange={e=>setReqField("budgetMax",e.target.value)} placeholder="如 25000"/></div>
+          <div className="field" style={{flex:1}}><div className="field-label">品牌偏好</div><select value={req.brand||""} onChange={e=>setReqField("brand",e.target.value)}><option value="">不限</option>{BRANDS.map(b=><option key={b}>{b}</option>)}</select></div>
+        </div>
+        <div className="field"><div className="field-label">客户行业</div><div className="chip-group">{INDUSTRIES.map(i=><button key={i} className={`chip ${req.industry===i?"active":""}`} onClick={()=>setReqField("industry",i)}>{i}</button>)}</div></div>
+        <div className="field"><div className="field-label">特殊要求</div><input type="text" value={req.specialReq||""} onChange={e=>setReqField("specialReq",e.target.value)} placeholder="如：信创要求 / 需要国产品牌 / 需集成门禁系统"/></div>
+
+        <div style={{marginTop:20}}><button className="btn-primary" onClick={doMatch}>🔍 智能匹配推荐</button></div>
+      </>)}
+    </div>)}
+
+    {/* ===== SOLUTION ===== */}
+    {tab==="solution"&&view==="result"&&solution&&(<div>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+        <button className="btn-back" onClick={()=>{setTab("match");setView("list");}}>←</button>
+        <span style={{fontSize:18,fontWeight:700,flex:1}}>场景方案推荐</span>
+        <button className="btn-accent" onClick={exportSolution}>📊 导出</button>
+      </div>
+
+      {/* 需求摘要 */}
+      <div className="card" style={{background:"#F0FDF4",border:"1px solid #BBF7D0"}}>
+        <div style={{fontSize:14,fontWeight:700,color:"var(--safe)",marginBottom:8}}>📋 客户需求摘要</div>
+        <div style={{fontSize:13,color:"var(--sub)",lineHeight:1.8}}>
+          {(req.scenes||[]).length>0&&<span>场景：{req.scenes.join("、")} · </span>}
+          {req.minArea&&<span>面积：{req.minArea}~{req.maxArea||"?"}㎡ · </span>}
+          {req.people&&<span>人数：{req.people}人 · </span>}
+          {req.budgetMax&&<span>预算：≤¥{parseInt(req.budgetMax).toLocaleString()} · </span>}
+          {req.brand&&<span>品牌：{req.brand} · </span>}
+          {(req.needs||[]).length>0&&<span>需求：{req.needs.join("、")} · </span>}
+          {req.industry&&<span>行业：{req.industry} · </span>}
+          {req.specialReq&&<span>特殊：{req.specialReq}</span>}
+        </div>
+      </div>
+
+      {solution.tiers.length===0&&(<div className="card" style={{textAlign:"center",padding:"2rem",color:"var(--hint)"}}>没有找到匹配的SKU，请调整需求条件或补充SKU数据</div>)}
+
+      {/* 推荐方案（分档） */}
+      {solution.tiers.map((t,idx)=>{
+        const s=t.sku;const tierCls=t.tier.includes("经济")?"tier-economy":t.tier.includes("旗舰")?"tier-premium":"tier-standard";
+        const sc=s.score;const scCls=sc>=70?"score-high":sc>=45?"score-mid":"score-low";
+        return(<div key={idx} className="card" style={{borderLeft:`4px solid ${tierCls==="tier-economy"?"var(--safe)":tierCls==="tier-premium"?"var(--accent2)":"var(--accent)"}`}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+            <span className={`tier-label ${tierCls}`}>{t.tier}</span>
+            <span className={`match-score ${scCls}`}>匹配 {sc}%</span>
+          </div>
+
+          <div style={{fontSize:16,fontWeight:700,marginBottom:6}}>{s.name}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+            <span className="tag tag-brand">{s.brand}</span>
+            {s.size&&<span className="tag tag-size">{s.size}寸</span>}
+          </div>
+          {s.price&&<div style={{fontSize:20,fontWeight:700,color:"var(--jd)",marginBottom:8}}>¥{parseInt(s.price).toLocaleString()}</div>}
+
+          <div style={{fontSize:13,color:"var(--sub)",lineHeight:1.8}}>
+            {[["分辨率",s.resolution],["系统",s.os],["摄像头",s.camera],["麦克风",s.mic],["投屏",s.cast],["适用面积",s.minArea&&s.maxArea?`${s.minArea}~${s.maxArea}㎡`:""],["适用人数",s.minPeople&&s.maxPeople?`${s.minPeople}~${s.maxPeople}人`:""],["安装方式",(s.installTypes||[]).join("/")],["质保",s.warranty?s.warranty+"年":""]].filter(([,v])=>v).map(([k,v])=><span key={k}>{k}：{v} · </span>)}
+          </div>
+
+          {(s.accessories||[]).length>0&&<div style={{marginTop:8}}><span style={{fontSize:12,fontWeight:600,color:"var(--accent)"}}>推荐配件：</span><span style={{fontSize:12,color:"var(--sub)"}}>{s.accessories.join("、")}</span></div>}
+
+          {s.sellingPoints&&<div style={{marginTop:8,padding:"8px 12px",background:"#F9FAFB",borderRadius:8}}><div style={{fontSize:11,fontWeight:600,color:"var(--sub)",marginBottom:2}}>核心卖点</div><div style={{fontSize:12,color:"var(--text)",lineHeight:1.7,whiteSpace:"pre-line"}}>{s.sellingPoints}</div></div>}
+
+          <PriceRadarCard skuCode={s.code} skuName={s.name}/>
+
+          {s.url&&<div style={{marginTop:8}}><a href={s.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:"var(--accent)"}}>查看京东商品页 →</a></div>}
+        </div>);
+      })}
+
+      {/* 所有匹配结果 */}
+      {solution.allMatched.length>solution.tiers.length&&(<>
+        <div style={{fontSize:14,fontWeight:700,marginTop:16,marginBottom:10}}>其他匹配SKU（按匹配度排序）</div>
+        {solution.allMatched.filter(s=>!solution.tiers.some(t=>t.sku.id===s.id)).map(s=>{
+          const sc=s.score;const scCls=sc>=70?"score-high":sc>=45?"score-mid":"score-low";
+          return(<div key={s.id} className="card" style={{padding:"12px 16px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span className={`match-score ${scCls}`}>{sc}%</span>
+              <span style={{fontSize:14,fontWeight:600,flex:1}}>{s.name}</span>
+              {s.price&&<span style={{fontSize:14,fontWeight:700,color:"var(--jd)"}}>¥{parseInt(s.price).toLocaleString()}</span>}
+            </div>
+            <div style={{fontSize:12,color:"var(--sub)",marginTop:4}}>{s.brand} {s.size&&s.size+"寸"} · {(s.scenes||[]).slice(0,2).join("、")}</div>
+          </div>);
+        })}
+      </>)}
+
+      {/* 方案说明 */}
+      <div className="card" style={{background:"#F9FAFB",border:"none",marginTop:16}}>
+        <div style={{fontSize:14,fontWeight:700,marginBottom:8}}>📝 方案说明</div>
+        <div style={{fontSize:12,color:"var(--sub)",lineHeight:1.8}}>
+          1. 以上推荐基于SKU数据库中的产品参数与客户需求的智能匹配<br/>
+          2. 经济版侧重性价比，标准版为综合最优推荐，旗舰版侧重高端体验<br/>
+          3. 实际报价请以京东企业购当前价格为准，可在价格雷达中查看实时竞品价格<br/>
+          4. 配件搭配建议根据场景需求和产品特性自动推荐，可根据客户实际需求调整<br/>
+          {req.specialReq&&<>5. 客户特殊要求：{req.specialReq}，请在方案沟通时重点确认<br/></>}
+        </div>
+      </div>
+
+      <div style={{marginTop:20}}><button className="btn-primary" onClick={exportSolution}>📊 导出方案Excel</button></div>
+    </div>)}
+
+    {tab==="solution"&&view!=="result"&&(<div className="empty">
+      <div style={{fontSize:48,opacity:.3}}>📋</div>
+      <div className="empty-title">还没有生成方案</div>
+      <div className="empty-desc">切换到「需求匹配」填写客户需求<br/>系统会自动推荐匹配的SKU并生成方案</div>
+    </div>)}
+
+    {/* TABBAR */}
+    <div className="tab-bar"><div className="tab-bar-inner">
+      {[["skudb","SKU数据库","M4 7v10c0 2.2 1.8 4 4 4h8c2.2 0 4-1.8 4-4V7M20 7H4M10 11v6M14 11v6M9 7V4h6v3",false],
+        ["match","需求匹配","M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",false],
+        ["solution","方案输出","M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",false]
+      ].map(([k,l,d])=>(
+        <button key={k} className={`tab-item ${tab===k?"active":""}`} onClick={()=>{setTab(k);if(k!=="solution")setView("list");}}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>
+          <span>{l}</span>
+        </button>
+      ))}
+    </div></div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

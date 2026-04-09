@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>价格雷达 - 会议平板价格监控</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#F0F1F5;--card:#FFFFFF;--text:#1B1F3B;--sub:#6B7280;--hint:#9CA3AF;--border:#E5E7EB;--accent:#534AB7;--jd:#E4393C;--tmall:#FF6A00;--sn:#D4900A;--pdd:#E02E24;--danger:#DC2626;--safe:#16A34A;--warn:#D97706;--radius:14px}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;overflow-x:hidden}
+input,textarea,select,button{font-family:inherit;font-size:14px}
+input[type=text],input[type=number],textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border .2s}
+input:focus,textarea:focus{border-color:var(--accent)}
+button{cursor:pointer;border:none;outline:none}
+.app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;position:relative}
+.sidebar{width:260px;position:fixed;left:-260px;top:0;bottom:0;background:#fff;z-index:200;transition:left .3s;box-shadow:4px 0 24px rgba(0,0,0,.12);display:flex;flex-direction:column}.sidebar.open{left:0}
+.sidebar-mask{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199;display:none}.sidebar-mask.show{display:block}
+.sidebar-header{padding:20px 18px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}.sidebar-title{font-size:16px;font-weight:600}
+.sidebar-list{flex:1;overflow-y:auto;padding:10px 0}
+.sidebar-item{padding:12px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s;font-size:14px;gap:8px}.sidebar-item:hover{background:#F5F6FA}.sidebar-item.active{background:#EEEDFE;color:var(--accent);font-weight:600}
+.sidebar-item .del-date{display:none;color:var(--danger);font-size:12px;padding:2px 8px;border-radius:6px;background:#FEE2E2;flex-shrink:0}.sidebar-item:hover .del-date{display:block}
+.main{flex:1;width:100%;max-width:520px;padding:0 16px 80px;margin:0 auto}
+.topbar{display:flex;align-items:center;padding:16px 0 12px;gap:12px;position:sticky;top:0;background:var(--bg);z-index:50}
+.menu-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:10px;border:1px solid var(--border);flex-shrink:0}.menu-btn span{display:block;width:18px;height:2px;background:var(--text);position:relative}.menu-btn span::before,.menu-btn span::after{content:'';position:absolute;left:0;width:100%;height:2px;background:var(--text)}.menu-btn span::before{top:-5px}.menu-btn span::after{top:5px}
+.page-title{font-size:20px;font-weight:600;flex:1}
+.header-badge{font-size:12px;color:#fff;background:var(--danger);border-radius:10px;padding:2px 9px;font-weight:600}
+.card{background:var(--card);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.alert-banner{background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px}.alert-banner.warn-bg{background:#FEF3C7;border-color:#FDE68A}
+.alert-banner .a-title{font-size:13px;font-weight:600;color:var(--danger);margin-bottom:4px}.alert-banner.warn-bg .a-title{color:var(--warn)}
+.alert-banner .a-text{font-size:12px;color:#991B1B;line-height:1.7}.alert-banner.warn-bg .a-text{color:#92400E}
+.tag{display:inline-block;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.tag-jd{color:var(--jd);background:#FEF2F2}.tag-tmall{color:var(--tmall);background:#FFF7ED}.tag-suning{color:var(--sn);background:#FFFBEB}.tag-pdd{color:var(--pdd);background:#FEF2F2}.tag-other{color:#666;background:#F3F4F6}
+.tag-bench{color:var(--accent);border:1px solid var(--accent);background:#EEEDFE;font-size:11px;padding:1px 7px;border-radius:4px}
+.sku-card{cursor:pointer;transition:box-shadow .2s}.sku-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.sku-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}.sku-name-text{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.sku-code{background:#F3F4F6;padding:2px 8px;border-radius:4px;font-size:11px;font-family:monospace;color:var(--sub);flex-shrink:0}
+.sku-meta{font-size:12px;color:var(--hint);margin-bottom:10px}
+.sku-prices{display:flex;flex-wrap:wrap;gap:8px}.sku-price-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:#F9FAFB;border-radius:8px;font-size:12px}
+.sku-footer{margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.badge-danger{font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;background:#FEE2E2;color:var(--danger)}
+.badge-safe{font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;background:#DCFCE7;color:var(--safe)}
+.btn-primary{background:var(--text);color:#fff;border-radius:50px;padding:13px 32px;font-size:15px;font-weight:600;width:100%;transition:opacity .15s}.btn-primary:active{opacity:.85}.btn-primary:disabled{background:var(--border)}
+.btn-sm{padding:6px 16px;font-size:13px;font-weight:500;border-radius:20px;background:#F3F4F6;color:var(--text)}
+.btn-accent{background:#EEEDFE;color:var(--accent);font-weight:600;border-radius:20px;padding:5px 14px;font-size:12px}
+.btn-danger-sm{background:#FEE2E2;color:var(--danger);font-weight:500;border-radius:10px;padding:3px 10px;font-size:11px}
+.btn-back{background:none;font-size:20px;padding:0;color:var(--text);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px}.btn-back:hover{background:#F3F4F6}
+.field{margin-bottom:14px}.field-label{font-size:13px;color:var(--sub);margin-bottom:5px}
+.field-row{display:flex;gap:10px}.field-row .field{flex:1}
+.platform-select{display:flex;flex-wrap:wrap;gap:8px}
+.platform-opt{display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:20px;font-size:13px;border:1.5px solid var(--border);background:#fff;color:var(--sub);transition:all .15s}
+.item-card{margin-bottom:10px}.item-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.item-actions{margin-left:auto;display:flex;gap:6px}
+.item-title{font-size:13px;color:var(--sub)}.item-time{font-size:11px;color:var(--hint)}
+.screenshot-area{margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6}
+.screenshot-grid{display:flex;gap:8px;flex-wrap:wrap}
+.ss-wrap{position:relative}.ss-img{width:64px;height:64px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--border);display:block}
+.ss-del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ss-add{width:64px;height:64px;border-radius:8px;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:var(--hint)}.ss-add:hover{border-color:var(--accent);color:var(--accent)}
+.chart-bars{display:flex;justify-content:center;align-items:flex-end;gap:16px;height:130px;padding:0 10px}
+.chart-col{text-align:center;flex:1;max-width:70px}.chart-bar{width:100%;border-radius:8px 8px 0 0;min-height:12px}.chart-val{font-size:12px;font-weight:600;margin-bottom:4px}.chart-label{font-size:11px;color:var(--sub);margin-top:6px}
+.empty{text-align:center;padding:3rem 1.5rem}.empty-title{font-size:18px;font-weight:600;margin:12px 0 8px}.empty-desc{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:28px}
+.modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:20px}
+.modal-body{background:#fff;border-radius:16px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;padding:24px}.modal img{max-width:100%;border-radius:10px}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.tab-bar-inner{display:flex;max-width:520px;width:100%}.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;background:none;color:var(--hint);font-size:11px;cursor:pointer;border:none}.tab-item.active{color:var(--text);font-weight:600}.tab-item svg{width:22px;height:22px}
+.date-input-row{display:flex;gap:8px;padding:12px 18px}.date-input-row input{flex:1}
+.confirm-modal{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);padding:20px}
+.confirm-box{background:#fff;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-box h3{font-size:16px;margin-bottom:8px}.confirm-box p{font-size:14px;color:var(--sub);margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}.confirm-btns button{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600}
+.confirm-cancel{background:#F3F4F6;color:var(--text)}.confirm-ok{background:var(--danger);color:#fff}
+.export-btn{display:flex;align-items:center;gap:6px;background:#DCFCE7;color:var(--safe);font-weight:600;border-radius:20px;padding:6px 16px;font-size:13px}
+.margin-bar{display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;border-radius:8px;font-size:12px}
+.margin-bar.ok{background:#DCFCE7;color:var(--safe)}.margin-bar.warn{background:#FEF3C7;color:var(--warn)}.margin-bar.danger{background:#FEE2E2;color:var(--danger)}
+.approval-hint{margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.6}
+.approval-hint.lv1{background:#DCFCE7;color:#166534}.approval-hint.lv2{background:#FEF3C7;color:#92400E}.approval-hint.lv3{background:#FEE2E2;color:#991B1B}
+.nature-tag{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600}
+.nature-temp{background:#DBEAFE;color:#2563EB}.nature-long{background:#FEE2E2;color:var(--danger)}.nature-promo{background:#FAE8FF;color:#9333EA}
+.redline-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;margin-bottom:14px;font-size:13px}
+.redline-bar input{width:60px;padding:6px 8px;text-align:center;font-weight:700;font-size:15px;border:2px solid var(--danger);border-radius:8px;color:var(--danger)}
+.cost-calc{background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px;margin-bottom:14px}
+.cost-calc .calc-title{font-size:13px;font-weight:600;color:var(--safe);margin-bottom:10px}
+.rebate-mode{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.rebate-mode button{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:#fff;color:var(--sub)}
+.rebate-mode button.active{border-color:var(--safe);background:#DCFCE7;color:var(--safe);font-weight:600}
+.calc-result{padding:10px 12px;background:#fff;border-radius:8px;border:1px solid #BBF7D0;margin-top:10px;font-size:13px}
+.calc-result .result-val{font-size:18px;font-weight:700;color:var(--safe)}
+/* price entry */
+.pe-card{padding:8px 10px;background:#F9FAFB;border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;font-size:13px}
+.pe-card.best{background:#DCFCE7;border:1px solid #BBF7D0}
+.pe-price{font-size:16px;font-weight:700;color:var(--danger)}
+.pe-detail{flex:1;min-width:0}
+/* trend */
+.trend-row{display:flex;align-items:flex-end;gap:4px;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:12px}
+.trend-row:last-child{border:none}
+.trend-date{width:60px;flex-shrink:0;color:var(--hint);font-size:11px}
+.trend-bars{flex:1;display:flex;gap:4px;align-items:center}
+.trend-bar{height:16px;border-radius:4px;min-width:2px}
+.trend-val{font-size:11px;font-weight:600;margin-left:4px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo}=React;
+const PF={jd:{label:"京东",color:"#E4393C",cls:"tag-jd"},tmall:{label:"天猫",color:"#FF6A00",cls:"tag-tmall"},suning:{label:"苏宁",color:"#D4900A",cls:"tag-suning"},pdd:{label:"拼多多",color:"#E02E24",cls:"tag-pdd"},other:{label:"其他",color:"#666",cls:"tag-other"}};
+const NATURES=[{id:'',label:'未标注'},{id:'temp',label:'临时促销',cls:'nature-temp'},{id:'long',label:'长期调价',cls:'nature-long'},{id:'promo',label:'大促活动',cls:'nature-promo'}];
+const gid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fmtD=ts=>{const d=new Date(ts);return`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;};
+const KEY="price-radar-v11";
+function loadAll(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):{dates:[],currentDate:null,defaultRedLine:8};}catch{return{dates:[],currentDate:null,defaultRedLine:8};}}
+function saveAll(d){localStorage.setItem(KEY,JSON.stringify(d));}
+function compressImg(f,mW=1000,q=.9){return new Promise(res=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');let ratio=1;if(img.width>mW)ratio=mW/img.width;c.width=img.width*ratio;c.height=img.height*ratio;c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q));};img.src=e.target.result;};r.readAsDataURL(f);});}
+
+// === CORE: Multi-price per item ===
+// Each item has priceEntries:[{id,price,discount,discountDetail}]
+// Backward compat: if item has .price but no .priceEntries, migrate
+function getEntries(i){if(i.priceEntries&&i.priceEntries.length)return i.priceEntries;if(i.price>0)return[{id:gid(),price:i.price,discount:i.discount||0,discountDetail:i.discountDetail||''}];return[];}
+function entryFinal(e){return Math.max(0,e.price-(e.discount||0));}
+function bestPrice(i){const es=getEntries(i);if(!es.length)return 0;return Math.min(...es.map(entryFinal));}
+function bestEntry(i){const es=getEntries(i);if(!es.length)return null;return es.reduce((a,b)=>entryFinal(a)<=entryFinal(b)?a:b);}
+
+function calcCost(g){const wp=g.warehousePrice||0;if(!wp)return g.costPrice||0;const mode=g.rebateMode||'fixed';const rv=g.rebateValue||0;if(mode==='fixed')return Math.max(0,wp-rv);if(mode==='percent')return Math.max(0,wp*(1-rv/100));return g.costPrice||0;}
+function getRedLine(g,defRL){return g.redLine!=null?g.redLine:defRL;}
+function calcMargin(g){const jd=g.items?.find(i=>i.isBench);const cost=calcCost(g);if(!jd||cost<=0)return null;const bp=bestPrice(jd);if(bp<=0)return null;return Math.round((bp-cost)/bp*1000)/10;}
+function approvalHint(oldP,newP){if(!oldP||oldP<=0||!newP||newP<=0)return null;const pct=Math.abs(newP-oldP)/oldP*100;if(pct<=5)return{cls:'lv1',text:`${pct.toFixed(1)}%（≤5%）→ 直接调，日报注明`};if(pct<=15)return{cls:'lv2',text:`${pct.toFixed(1)}%（5%-15%）→ 报备leader`};return{cls:'lv3',text:`${pct.toFixed(1)}%（>15%）→ 品牌方确认+书面审批`};}
+function getAlert(g){const jd=g.items.find(i=>i.isBench);if(!jd)return null;const jdBP=bestPrice(jd);if(jdBP<=0)return null;const lower=g.items.filter(i=>!i.isBench&&bestPrice(i)>0&&bestPrice(i)<jdBP);if(!lower.length)return null;const lo=lower.reduce((a,b)=>bestPrice(a)<bestPrice(b)?a:b);return{jdP:jdBP,compP:bestPrice(lo),pf:lo.platform,diff:Math.round(jdBP-bestPrice(lo)),nature:lo.nature};}
+
+// === TREND: Cross-date tracking ===
+function getTrend(code,dates){
+  if(!code)return[];
+  return dates.map(d=>{
+    const g=d.groups?.find(x=>x.code===code);if(!g)return null;
+    const jd=g.items?.find(i=>i.isBench);const jdP=jd?bestPrice(jd):0;
+    const comps=g.items?.filter(i=>!i.isBench&&bestPrice(i)>0)||[];
+    const compP=comps.length?Math.min(...comps.map(bestPrice)):0;
+    if(!jdP&&!compP)return null;
+    return{label:d.label,jdP,compP,diff:compP>0&&jdP>0?jdP-compP:0};
+  }).filter(Boolean).reverse();// oldest first
+}
+
+function Confirm({title,text,onOk,onCancel}){return(<div className="confirm-modal" onClick={onCancel}><div className="confirm-box" onClick={e=>e.stopPropagation()}><h3>{title}</h3><p>{text}</p><div className="confirm-btns"><button className="confirm-cancel" onClick={onCancel}>取消</button><button className="confirm-ok" onClick={onOk}>确认</button></div></div></div>);}
+
+function App(){
+  const [store,setStore]=useState(loadAll);
+  const [view,setView]=useState("list");const [sel,setSel]=useState(null);
+  const [sideOpen,setSideOpen]=useState(false);const [newDateVal,setNewDateVal]=useState("");
+  const [fn,setFn]=useState("");const [fc,setFc]=useState("");
+  const [fWp,setFWp]=useState(0);const [fGuide,setFGuide]=useState(0);const [fRebateMode,setFRebateMode]=useState('fixed');const [fRebateVal,setFRebateVal]=useState(0);const [fRedLine,setFRedLine]=useState(null);
+  const [fp,setFp]=useState("jd");const [ft,setFt]=useState("");const [fu,setFu]=useState("");const [fNature,setFNature]=useState("");
+  // Multi price entries for add form
+  const [fEntries,setFEntries]=useState([{id:gid(),price:'',discount:'',discountDetail:''}]);
+  const [previewImg,setPreviewImg]=useState(null);const [confirmAction,setConfirmAction]=useState(null);
+  const [showTrend,setShowTrend]=useState(false);
+  const fileRef=useRef(null);const [uploadTarget,setUploadTarget]=useState(null);
+
+  useEffect(()=>{saveAll(store);},[store]);
+  const dates=store.dates||[];const curDate=store.currentDate;const curDateObj=dates.find(d=>d.id===curDate);const groups=curDateObj?.groups||[];const curGroup=groups.find(g=>g.id===sel);
+  const defRL=store.defaultRedLine||8;
+  const setDefRL=v=>{setStore(p=>({...p,defaultRedLine:v}));};
+  const update=fn2=>{setStore(p=>{const n=JSON.parse(JSON.stringify(p));fn2(n);return n;});};
+
+  const previewCost=fRebateMode==='fixed'?Math.max(0,fWp-fRebateVal):fRebateMode==='percent'?Math.max(0,fWp*(1-fRebateVal/100)):0;
+  const addDate=()=>{const v=newDateVal.trim();if(!v)return;update(s=>{if(!s.dates)s.dates=[];const prev=s.dates[0];const copied=prev?.groups?prev.groups.map(g=>({...g,id:gid(),ts:Date.now(),items:g.items.map(i=>({...i,id:gid(),priceEntries:[],ts:Date.now(),screenshots:[]}))})):[];s.dates.unshift({id:gid(),label:v,groups:copied,ts:Date.now()});s.currentDate=s.dates[0].id;});setNewDateVal("");setView("list");};
+  const delDate=id=>{update(s=>{s.dates=s.dates.filter(d=>d.id!==id);if(s.currentDate===id)s.currentDate=s.dates[0]?.id||null;});setConfirmAction(null);};
+  const selectDate=id=>{update(s=>{s.currentDate=id;});setSideOpen(false);setView("list");setSel(null);};
+  const createGroup=()=>{if(!fn.trim()||!curDate)return;const cost=fRebateMode==='manual'?0:previewCost;const g={id:gid(),name:fn.trim(),code:fc.trim(),warehousePrice:fWp,rebateMode:fRebateMode,rebateValue:fRebateVal,costPrice:cost,guidePrice:fGuide,redLine:fRedLine,items:[],alertOn:true,ts:Date.now()};update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd)dd.groups.unshift(g);});setFn("");setFc("");setFWp(0);setFGuide(0);setFRebateMode('fixed');setFRebateVal(0);setFRedLine(null);setSel(g.id);setView("detail");};
+  const delGroup=gid2=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd)dd.groups=dd.groups.filter(g=>g.id!==gid2);});if(sel===gid2){setView("list");setSel(null);}setConfirmAction(null);};
+
+  const addItem=()=>{if(!ft.trim())return;const entries=fEntries.filter(e=>parseFloat(e.price)>0).map(e=>({id:gid(),price:parseFloat(e.price),discount:parseFloat(e.discount)||0,discountDetail:e.discountDetail||''}));if(!entries.length)return;const item={id:gid(),platform:fp,title:ft.trim(),url:fu.trim(),nature:fNature,isBench:fp==="jd",priceEntries:entries,ts:Date.now(),screenshots:[]};update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===sel);if(g)g.items.push(item);}});setFt("");setFu("");setFNature("");setFEntries([{id:gid(),price:'',discount:'',discountDetail:''}]);setView("detail");};
+  const delItem=iid=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===sel);if(g)g.items=g.items.filter(i=>i.id!==iid);}});setConfirmAction(null);};
+  // Add/remove/update price entries on existing item
+  const addEntry=(iid)=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===sel);if(g){const i=g.items.find(x=>x.id===iid);if(i){if(!i.priceEntries)i.priceEntries=getEntries(i);i.priceEntries.push({id:gid(),price:0,discount:0,discountDetail:''});}}}});};
+  const updateEntry=(iid,eid,field,val)=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===sel);if(g){const i=g.items.find(x=>x.id===iid);if(i){if(!i.priceEntries)i.priceEntries=getEntries(i);const e=i.priceEntries.find(x=>x.id===eid);if(e){e[field]=field==='discountDetail'?val:(parseFloat(val)||0);i.ts=Date.now();}}}}});};
+  const delEntry=(iid,eid)=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===sel);if(g){const i=g.items.find(x=>x.id===iid);if(i&&i.priceEntries)i.priceEntries=i.priceEntries.filter(x=>x.id!==eid);}}}); };
+  const updateGroupField=(gid2,fields)=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===gid2);if(g)Object.assign(g,fields);}});};
+  const toggleAlert=gid2=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===gid2);if(g)g.alertOn=!g.alertOn;}});};
+  const setItemNature=(iid,n)=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===sel);if(g){const i=g.items.find(x=>x.id===iid);if(i)i.nature=n;}}});};
+  const handleScreenshot=async e=>{const file=e.target.files[0];if(!file||!uploadTarget)return;const data=await compressImg(file);update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===sel);if(g){const i=g.items.find(x=>x.id===uploadTarget);if(i){if(!i.screenshots)i.screenshots=[];i.screenshots.push({id:gid(),data,ts:Date.now()});}}}});setUploadTarget(null);e.target.value="";};
+  const delScreenshot=(iid,ssId)=>{update(s=>{const dd=s.dates.find(d=>d.id===s.currentDate);if(dd){const g=dd.groups.find(g2=>g2.id===sel);if(g){const i=g.items.find(x=>x.id===iid);if(i)i.screenshots=(i.screenshots||[]).filter(x=>x.id!==ssId);}}});};
+
+  const allAlerts=groups.filter(g=>g.alertOn&&getAlert(g)).map(g=>({...getAlert(g),name:g.name,id:g.id}));
+  const marginAlerts=groups.filter(g=>{const m=calcMargin(g);const rl=getRedLine(g,defRL);return m!==null&&m<rl;});
+  const maxP=curGroup?Math.max(...curGroup.items.filter(i=>bestPrice(i)>0).map(i=>bestPrice(i)),1):1;
+  const go=(v,id)=>{setView(v);if(id!==undefined)setSel(id);};
+
+  // Trend data for current group
+  const trendData=useMemo(()=>curGroup?.code?getTrend(curGroup.code,dates):[], [curGroup?.code,dates]);
+
+  return(<div className="app">
+    <input type="file" accept="image/*" ref={fileRef} style={{display:"none"}} onChange={handleScreenshot}/>
+    <div className={`sidebar ${sideOpen?"open":""}`}><div className="sidebar-header"><span className="sidebar-title">📅 日期页</span><button className="btn-sm" onClick={()=>setSideOpen(false)}>关闭</button></div><div className="date-input-row"><input type="text" value={newDateVal} onChange={e=>setNewDateVal(e.target.value)} placeholder="如：2025-06-15"/><button className="btn-sm" style={{background:newDateVal.trim()?'var(--accent)':'var(--border)',color:newDateVal.trim()?'#fff':'var(--hint)',fontWeight:600}} onClick={addDate}>创建</button></div><div className="sidebar-list">{!dates.length&&<div style={{padding:"20px 18px",fontSize:13,color:"var(--hint)",textAlign:"center"}}>创建日期页开始监控</div>}{dates.map(d=><div key={d.id} className={`sidebar-item ${curDate===d.id?"active":""}`} onClick={()=>selectDate(d.id)}><span style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.label}</span><span style={{fontSize:12,color:"var(--hint)"}}>{d.groups?.length||0}个</span><button className="del-date" onClick={e=>{e.stopPropagation();setConfirmAction({title:"删除",text:`删除「${d.label}」？`,action:()=>delDate(d.id)});}}>删除</button></div>)}</div></div>
+    {sideOpen&&<div className="sidebar-mask show" onClick={()=>setSideOpen(false)}/>}
+    {confirmAction&&<Confirm title={confirmAction.title} text={confirmAction.text} onOk={confirmAction.action} onCancel={()=>setConfirmAction(null)}/>}
+    {previewImg&&<div className="modal" onClick={()=>setPreviewImg(null)}><div className="modal-body" onClick={e=>e.stopPropagation()}><img src={previewImg}/></div></div>}
+
+    <div className="main">
+      <div className="topbar"><button className="menu-btn" onClick={()=>setSideOpen(true)}><span/></button><div className="page-title">📡 价格雷达{curDateObj&&<span style={{fontSize:13,fontWeight:400,color:"var(--hint)",marginLeft:8}}>{curDateObj.label}</span>}</div>{allAlerts.length>0&&<span className="header-badge">{allAlerts.length}</span>}</div>
+
+      {!curDate&&<div className="empty"><div style={{fontSize:48,opacity:.3}}>📅</div><div className="empty-title">先创建日期页</div><button className="btn-primary" style={{maxWidth:300,margin:"0 auto"}} onClick={()=>setSideOpen(true)}>打开侧边栏</button></div>}
+
+      {/* LIST */}
+      {curDate&&view==="list"&&<div>
+        <div className="redline-bar"><span style={{fontWeight:600,color:'var(--danger)'}}>⚠ 默认红线</span><input type="number" value={defRL} onChange={e=>setDefRL(parseFloat(e.target.value)||0)}/><span style={{color:'var(--danger)',fontWeight:600}}>%</span><span style={{fontSize:11,color:'var(--sub)'}}>SKU可单独覆盖</span></div>
+        {allAlerts.length>0&&<div className="alert-banner"><div className="a-title">⚠ {allAlerts.length} 条价格预警（按最低到手价）</div>{allAlerts.map(a=>{const nt=NATURES.find(x=>x.id===a.nature);return<div key={a.id} className="a-text">{a.name}：{PF[a.pf]?.label}最低¥{a.compP.toLocaleString()} &lt; 京东¥{a.jdP.toLocaleString()}（差¥{a.diff}）{nt&&nt.id&&<span className={`nature-tag ${nt.cls}`} style={{marginLeft:4}}>{nt.label}</span>}</div>;})}</div>}
+        {marginAlerts.length>0&&<div className="alert-banner warn-bg"><div className="a-title">⚠ {marginAlerts.length}个SKU毛利触红线</div>{marginAlerts.map(g=><div key={g.id} className="a-text">{g.name}：{calcMargin(g)}% &lt; {getRedLine(g,defRL)}%</div>)}</div>}
+        {!groups.length?<div className="empty"><div className="empty-title">创建价格监控</div><div className="empty-desc">每个平台链接可添加多个价格/优惠<br/>按最低到手价预警</div><button className="btn-primary" style={{maxWidth:320,margin:"0 auto"}} onClick={()=>go("create")}>创建</button></div>
+        :<><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,gap:8}}><span style={{fontSize:13,color:"var(--hint)"}}>共{groups.length}个</span><div style={{display:"flex",gap:8}}><button className="export-btn" onClick={()=>{/*export*/}}>📊 导出</button><button className="btn-sm" style={{background:"var(--text)",color:"#fff",fontWeight:600}} onClick={()=>go("create")}>+ 新建</button></div></div>
+        {groups.map(g=>{const al=getAlert(g);const m=calcMargin(g);const rl=getRedLine(g,defRL);return(<div key={g.id} className="card sku-card" onClick={()=>go("detail",g.id)}>
+          <div className="sku-header">{g.code&&<span className="sku-code">{g.code}</span>}<span className="sku-name-text">{g.name}</span>{al&&g.alertOn&&<span style={{width:8,height:8,borderRadius:"50%",background:"var(--danger)",flexShrink:0}}/>}</div>
+          <div className="sku-meta">{g.items.length}个平台{calcCost(g)>0&&` · 成本¥${calcCost(g).toLocaleString()}`}</div>
+          <div className="sku-prices">{g.items.map(i=>{const bp=bestPrice(i);const ec=getEntries(i).length;return<span key={i.id} className="sku-price-chip"><span className={`tag ${PF[i.platform]?.cls||"tag-other"}`}>{PF[i.platform]?.label}</span><span style={{fontWeight:600,color:bp>0?(i.isBench?"var(--text)":"var(--sub)"):"var(--hint)"}}>{bp>0?`¥${bp.toLocaleString()}`:"待填"}</span>{ec>1&&<span style={{fontSize:10,color:'var(--accent)'}}>({ec}价)</span>}</span>;})}</div>
+          <div className="sku-footer">{m!==null?<span style={{fontSize:12,color:m<rl?'var(--danger)':'var(--safe)',fontWeight:600}}>毛利{m}%{m<rl?` ⚠`:''}</span>:<span style={{fontSize:12,color:'var(--hint)'}}>-</span>}{al&&g.alertOn?<span className="badge-danger">低¥{al.diff}</span>:<span className="badge-safe">领先</span>}</div>
+        </div>);})}</>}
+      </div>}
+
+      {/* CREATE */}
+      {view==="create"&&<div>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20}}><button className="btn-back" onClick={()=>go("list")}>←</button><span style={{fontSize:18,fontWeight:600}}>创建SKU监控</span></div>
+        <div className="field"><div className="field-label">名称 *</div><input type="text" value={fn} onChange={e=>setFn(e.target.value)} placeholder="MAXHUB V7旗舰版 75寸"/></div>
+        <div className="field"><div className="field-label">SKU编码（用于跨日期趋势追踪）</div><input type="text" value={fc} onChange={e=>setFc(e.target.value)} placeholder="100038374856"/></div>
+        <div className="cost-calc"><div className="calc-title">💰 成本与返利</div>
+          <div className="field-row"><div className="field"><div className="field-label">入仓价</div><input type="number" value={fWp||''} onChange={e=>setFWp(parseFloat(e.target.value)||0)} placeholder="17000"/></div><div className="field"><div className="field-label">指导价</div><input type="number" value={fGuide||''} onChange={e=>setFGuide(parseFloat(e.target.value)||0)} placeholder="21999"/></div></div>
+          <div className="rebate-mode"><button className={fRebateMode==='fixed'?'active':''} onClick={()=>setFRebateMode('fixed')}>💵 固定/台</button><button className={fRebateMode==='percent'?'active':''} onClick={()=>setFRebateMode('percent')}>📊 比例%</button><button className={fRebateMode==='manual'?'active':''} onClick={()=>setFRebateMode('manual')}>✏️ 手动</button></div>
+          {fRebateMode!=='manual'&&<div className="field"><input type="number" value={fRebateVal||''} onChange={e=>setFRebateVal(parseFloat(e.target.value)||0)} placeholder={fRebateMode==='fixed'?'每台返利（元）':'返利比例（%）'}/></div>}
+          <div className="field"><div className="field-label">此SKU毛利红线</div><div style={{display:'flex',gap:6,alignItems:'center'}}><input type="number" value={fRedLine??''} onChange={e=>setFRedLine(e.target.value===''?null:parseFloat(e.target.value)||0)} placeholder={`默认${defRL}%`}/><span style={{color:'var(--danger)',fontWeight:600}}>%</span></div></div>
+          {fWp>0&&fRebateMode!=='manual'&&<div className="calc-result"><span style={{fontSize:11,color:'var(--hint)'}}>进货价 </span><span className="result-val">¥{previewCost.toLocaleString()}</span></div>}
+        </div>
+        <button className="btn-primary" onClick={createGroup} disabled={!fn.trim()}>创建</button>
+      </div>}
+
+      {/* DETAIL */}
+      {view==="detail"&&curGroup&&<div>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+          <button className="btn-back" onClick={()=>{go("list");setSel(null);}}>←</button>
+          <span style={{fontSize:18,fontWeight:600,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{curGroup.name}</span>
+          {curGroup.code&&<button className="btn-accent" style={{fontSize:11}} onClick={()=>setShowTrend(!showTrend)}>{showTrend?'关闭趋势':'📈 趋势'}</button>}
+          <button className="btn-sm" style={{background:curGroup.alertOn?"#DCFCE7":"#F3F4F6",color:curGroup.alertOn?"var(--safe)":"var(--hint)",fontWeight:600,fontSize:11,padding:'4px 10px'}} onClick={()=>toggleAlert(curGroup.id)}>{curGroup.alertOn?"预警开":"预警关"}</button>
+        </div>
+
+        {/* Trend panel */}
+        {showTrend&&<div className="card" style={{marginBottom:14}}>
+          <div style={{fontSize:14,fontWeight:600,marginBottom:10}}>📈 跨日期价格趋势（SKU: {curGroup.code}）</div>
+          {trendData.length<2?<div style={{fontSize:12,color:'var(--hint)',padding:10}}>需要至少2个日期页有该SKU的价格数据才能显示趋势<br/>每次创建日期页后填入价格，趋势自动累积</div>
+          :<>{(()=>{const allP=[...trendData.map(t=>t.jdP),...trendData.map(t=>t.compP)].filter(x=>x>0);const maxP=Math.max(...allP,1);const minP=Math.min(...allP);
+            return trendData.map((t,i)=>{const jdW=t.jdP>0?Math.max(10,(t.jdP-minP*0.9)/(maxP-minP*0.9)*100):0;const cpW=t.compP>0?Math.max(10,(t.compP-minP*0.9)/(maxP-minP*0.9)*100):0;
+              return(<div key={i} className="trend-row">
+                <span className="trend-date">{t.label}</span>
+                <div style={{flex:1}}>
+                  <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:2}}><span style={{fontSize:10,width:24,color:'var(--jd)'}}>京东</span><div className="trend-bar" style={{width:`${jdW}%`,background:'var(--jd)'}}/>  <span className="trend-val" style={{color:'var(--jd)'}}>¥{t.jdP>0?t.jdP.toLocaleString():'-'}</span></div>
+                  <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:10,width:24,color:'var(--tmall)'}}>竞品</span><div className="trend-bar" style={{width:`${cpW}%`,background:'var(--tmall)'}}/><span className="trend-val" style={{color:'var(--tmall)'}}>¥{t.compP>0?t.compP.toLocaleString():'-'}</span></div>
+                </div>
+                <span style={{fontSize:11,fontWeight:600,width:50,textAlign:'right',color:t.diff>0?'var(--danger)':t.diff<0?'var(--safe)':'var(--hint)'}}>{t.diff>0?`+${t.diff}`:t.diff<0?t.diff:'-'}</span>
+              </div>);
+            });
+          })()}<div style={{fontSize:11,color:'var(--hint)',marginTop:8}}>差值 = 京东 - 竞品最低（正数=京东偏高，负数=京东领先）</div></>}
+        </div>}
+
+        {/* Cost card */}
+        <div className="cost-calc" style={{marginBottom:12}}>
+          <div className="calc-title">💰 成本</div>
+          <div style={{display:'flex',gap:8,fontSize:13,flexWrap:'wrap',alignItems:'center'}}>
+            <span>入仓: <input type="number" value={curGroup.warehousePrice||''} onChange={e=>updateGroupField(curGroup.id,{warehousePrice:parseFloat(e.target.value)||0})} style={{width:80,padding:'4px 8px',fontSize:13,display:'inline'}}/></span>
+            <span>返利: <input type="number" value={curGroup.rebateValue||''} onChange={e=>updateGroupField(curGroup.id,{rebateValue:parseFloat(e.target.value)||0})} style={{width:60,padding:'4px 8px',fontSize:13,display:'inline'}}/>{(curGroup.rebateMode||'fixed')==='percent'?'%':'元'}</span>
+            <span>→ 进货¥{calcCost(curGroup).toLocaleString()}</span>
+          </div>
+          {(()=>{const m=calcMargin(curGroup);const rl=getRedLine(curGroup,defRL);if(m===null)return null;return<div className={`margin-bar ${m<rl?'danger':m<rl+4?'warn':'ok'}`}><span style={{fontWeight:700,fontSize:14}}>{m}%</span> 毛利{m<rl?` · ⚠<${rl}%`:''}</div>;})()}
+        </div>
+
+        {/* Alert */}
+        {(()=>{const al=getAlert(curGroup);if(al&&curGroup.alertOn){const nt=NATURES.find(x=>x.id===al.nature);return<div className="alert-banner"><div className="a-title">⚠ 价格预警（按各平台最低到手价）</div><div className="a-text">{PF[al.pf]?.label}最低¥{al.compP.toLocaleString()} &lt; 京东最低¥{al.jdP.toLocaleString()} 差¥{al.diff}{nt&&nt.id&&<span className={`nature-tag ${nt.cls}`} style={{marginLeft:6}}>{nt.label}</span>}</div></div>;}return null;})()}
+
+        {/* Chart */}
+        {curGroup.items.filter(i=>bestPrice(i)>0).length>1&&<div className="card" style={{marginBottom:14}}><div style={{fontSize:14,fontWeight:600,marginBottom:14}}>最低到手价对比</div><div className="chart-bars">{curGroup.items.filter(i=>bestPrice(i)>0).sort((a,b)=>bestPrice(a)-bestPrice(b)).map(i=>{const bp=bestPrice(i);const pct=Math.max(bp/maxP*100,12);const c=PF[i.platform]||PF.other;return<div key={i.id} className="chart-col"><div className="chart-val">¥{bp.toLocaleString()}</div><div className="chart-bar" style={{height:`${pct}%`,background:c.color,opacity:.85}}/><div className="chart-label">{c.label}</div>{i.isBench&&<div style={{fontSize:10,color:"var(--accent)"}}>基准</div>}</div>;})}</div></div>}
+
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><span style={{fontSize:14,fontWeight:600}}>平台商品 ({curGroup.items.length})</span><button className="btn-accent" onClick={()=>{setFEntries([{id:gid(),price:'',discount:'',discountDetail:''}]);go("additem");}}>+ 添加</button></div>
+
+        {curGroup.items.map(i=>{const entries=getEntries(i);const bp=bestPrice(i);const be=bestEntry(i);const nt=NATURES.find(x=>x.id===i.nature);
+          return<div key={i.id} className="card item-card">
+            <div className="item-top"><span className={`tag ${PF[i.platform]?.cls||"tag-other"}`}>{PF[i.platform]?.label}</span>{i.isBench&&<span className="tag-bench">基准</span>}{nt&&nt.id&&<span className={`nature-tag ${nt.cls}`}>{nt.label}</span>}{!i.isBench&&<select value={i.nature||''} onChange={e=>setItemNature(i.id,e.target.value)} style={{fontSize:11,padding:'2px 6px',borderRadius:6,border:'1px solid var(--border)',background:'#fff'}}><option value="">标注</option><option value="temp">临时促销</option><option value="long">长期调价</option><option value="promo">大促活动</option></select>}<div className="item-actions"><button className="btn-danger-sm" onClick={()=>setConfirmAction({title:"删除",text:"确定？",action:()=>delItem(i.id)})}>删除</button></div></div>
+            <div className="item-title">{i.title}</div>
+            {i.url&&<div className="item-time"><a href={i.url} target="_blank" rel="noopener" style={{color:"var(--accent)",textDecoration:"none"}}>🔗 {i.url.slice(0,40)}...</a></div>}
+
+            {/* Price entries */}
+            <div style={{marginTop:8}}>
+              <div style={{fontSize:12,fontWeight:600,marginBottom:6,display:'flex',justifyContent:'space-between',alignItems:'center'}}><span>价格/优惠 ({entries.length}条)</span><button className="btn-accent" style={{fontSize:10,padding:'2px 8px'}} onClick={()=>addEntry(i.id)}>+ 添加价格</button></div>
+              {entries.map(e=>{const ef=entryFinal(e);const isBest=entries.length>1&&be&&be.id===e.id;return(
+                <div key={e.id} className={`pe-card ${isBest?'best':''}`}>
+                  <div className="pe-detail">
+                    <div style={{display:'flex',alignItems:'baseline',gap:6,flexWrap:'wrap'}}>
+                      <span className="pe-price">¥{ef.toLocaleString()}</span>
+                      {e.discount>0&&<span style={{fontSize:11,color:'var(--hint)',textDecoration:'line-through'}}>¥{e.price.toLocaleString()}</span>}
+                      {e.discount>0&&<span style={{fontSize:11,color:'var(--safe)',background:'#DCFCE7',padding:'1px 4px',borderRadius:3}}>-{e.discount}</span>}
+                      {e.discountDetail&&<span style={{fontSize:10,color:'var(--sub)',background:'#F3F4F6',padding:'1px 4px',borderRadius:3}}>{e.discountDetail}</span>}
+                      {isBest&&<span style={{fontSize:10,color:'var(--safe)',fontWeight:700}}>← 最低</span>}
+                    </div>
+                  </div>
+                  <div style={{display:'flex',gap:4,flexShrink:0}}>
+                    <input type="number" value={e.price||''} onChange={ev=>updateEntry(i.id,e.id,'price',ev.target.value)} placeholder="售价" style={{width:65,padding:'4px 6px',fontSize:12,textAlign:'center'}}/>
+                    <input type="number" value={e.discount||''} onChange={ev=>updateEntry(i.id,e.id,'discount',ev.target.value)} placeholder="优惠" style={{width:50,padding:'4px 6px',fontSize:12,textAlign:'center'}}/>
+                    <input type="text" value={e.discountDetail||''} onChange={ev=>updateEntry(i.id,e.id,'discountDetail',ev.target.value)} placeholder="说明" style={{width:60,padding:'4px 6px',fontSize:11}}/>
+                    {entries.length>1&&<button style={{background:'none',color:'var(--hint)',fontSize:14,padding:'0 2px'}} onClick={()=>delEntry(i.id,e.id)}>✕</button>}
+                  </div>
+                </div>
+              );})}
+            </div>
+
+            <div className="screenshot-area"><div style={{fontSize:12,color:"var(--hint)",marginBottom:8}}>截图</div><div className="screenshot-grid">{(i.screenshots||[]).map(s=><div key={s.id} className="ss-wrap"><img className="ss-img" src={s.data} onClick={()=>setPreviewImg(s.data)}/><div className="ss-del" onClick={()=>delScreenshot(i.id,s.id)}>×</div></div>)}<div className="ss-add" onClick={()=>{setUploadTarget(i.id);fileRef.current?.click();}}>+</div></div></div>
+          </div>;})}
+        {!curGroup.items.length&&<div className="empty"><div className="empty-title">添加平台价格</div><button className="btn-primary" style={{maxWidth:280,margin:"0 auto"}} onClick={()=>{setFEntries([{id:gid(),price:'',discount:'',discountDetail:''}]);go("additem");}}>添加</button></div>}
+        {curGroup.items.length>0&&<div style={{textAlign:"center",padding:16,border:"1.5px dashed var(--border)",borderRadius:"var(--radius)",marginTop:4,cursor:"pointer",fontSize:14,color:"var(--hint)"}} onClick={()=>{setFEntries([{id:gid(),price:'',discount:'',discountDetail:''}]);go("additem");}}>+ 添加平台</div>}
+        <div style={{textAlign:"center",marginTop:20}}><button style={{background:"none",border:"none",fontSize:13,color:"var(--danger)"}} onClick={()=>setConfirmAction({title:"删除",text:`删除「${curGroup.name}」？`,action:()=>delGroup(curGroup.id)})}>删除此监控</button></div>
+      </div>}
+
+      {/* ADD ITEM */}
+      {view==="additem"&&curGroup&&<div>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20}}><button className="btn-back" onClick={()=>go("detail")}>←</button><span style={{fontSize:18,fontWeight:600}}>添加平台商品</span></div>
+        <div className="field"><div className="field-label">平台</div><div className="platform-select">{Object.entries(PF).map(([k,v])=><button key={k} className={`platform-opt ${fp===k?"active":""}`} style={fp===k?{borderColor:v.color,color:v.color,background:v.color+"15",fontWeight:600}:{}} onClick={()=>setFp(k)}>{v.label}{k==="jd"?" (基准)":""}</button>)}</div></div>
+        <div className="field"><div className="field-label">商品标题 *</div><input type="text" value={ft} onChange={e=>setFt(e.target.value)} placeholder="MAXHUB V7经典版 75英寸"/></div>
+        <div className="field"><div className="field-label">商品链接</div><input type="text" value={fu} onChange={e=>setFu(e.target.value)} placeholder="https://..."/></div>
+        {fp!=="jd"&&<div className="field"><div className="field-label">价格性质</div><div style={{display:'flex',gap:8}}>{NATURES.filter(n=>n.id).map(n=><button key={n.id} className={`platform-opt ${fNature===n.id?'active':''}`} style={fNature===n.id?{borderColor:'var(--accent)',color:'var(--accent)',background:'#EEEDFE',fontWeight:600}:{}} onClick={()=>setFNature(fNature===n.id?'':n.id)}>{n.label}</button>)}</div></div>}
+
+        <div className="section-title" style={{marginTop:10}}>💰 价格/优惠（可添加多条）</div>
+        <div style={{fontSize:12,color:'var(--hint)',marginBottom:10}}>同一个链接可能有多种价格（直降/券/满减等），全部录入后系统按最低到手价预警</div>
+        {fEntries.map((e,idx)=><div key={e.id} style={{display:'flex',gap:6,alignItems:'center',marginBottom:8}}>
+          <span style={{fontSize:12,color:'var(--hint)',width:20,flexShrink:0}}>#{idx+1}</span>
+          <input type="number" value={e.price} onChange={ev=>{const v=[...fEntries];v[idx]={...v[idx],price:ev.target.value};setFEntries(v);}} placeholder="售价" style={{flex:2,padding:'8px 10px'}}/>
+          <input type="number" value={e.discount} onChange={ev=>{const v=[...fEntries];v[idx]={...v[idx],discount:ev.target.value};setFEntries(v);}} placeholder="优惠" style={{flex:1,padding:'8px 10px'}}/>
+          <input type="text" value={e.discountDetail} onChange={ev=>{const v=[...fEntries];v[idx]={...v[idx],discountDetail:ev.target.value};setFEntries(v);}} placeholder="说明" style={{flex:2,padding:'8px 10px'}}/>
+          {fEntries.length>1&&<button style={{background:'none',color:'var(--hint)',fontSize:16}} onClick={()=>setFEntries(f=>f.filter(x=>x.id!==e.id))}>✕</button>}
+        </div>)}
+        <button className="btn-sm" style={{marginBottom:14}} onClick={()=>setFEntries(f=>[...f,{id:gid(),price:'',discount:'',discountDetail:''}])}>+ 添加更多价格</button>
+        {(()=>{const valid=fEntries.filter(e=>parseFloat(e.price)>0);if(!valid.length)return null;const min=Math.min(...valid.map(e=>Math.max(0,parseFloat(e.price)-(parseFloat(e.discount)||0))));return<div style={{fontSize:14,color:'var(--safe)',fontWeight:600,marginBottom:10}}>最低到手价：¥{min.toLocaleString()}{valid.length>1&&` (${valid.length}条中)`}</div>;})()}
+        <button className="btn-primary" onClick={addItem} disabled={!ft.trim()||!fEntries.some(e=>parseFloat(e.price)>0)}>添加</button>
+      </div>}
+    </div>
+    <div className="tab-bar"><div className="tab-bar-inner"><button className="tab-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>监控雷达</span></button></div></div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
