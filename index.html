@@ -282,16 +282,7 @@ function App(){
       </div>
     </div>
 
-    {/* Mobile bottom tabs */}
-    <div className="mob-tabs">
-      {TOOLS.slice(0,7).map(t=>{
-        const badge=t.id==='inv'&&stats.inv.danger>0?stats.inv.danger:t.id==='complaint'&&stats.complaint.open>0?stats.complaint.open:null;
-        return<button key={t.id} className={`mob-tab ${active===t.id?'active':''}`} onClick={()=>go(t.id)}>
-          <span className="mt-icon">{t.icon}</span>{t.label}
-          {badge>0&&<span style={{position:'absolute',top:0,right:'calc(50% - 16px)',background:'var(--danger)',color:'#fff',fontSize:9,padding:'0 4px',borderRadius:6,fontWeight:700}}>{badge}</span>}
-        </button>;
-      })}
-    </div>
+
   </>);
 }
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
