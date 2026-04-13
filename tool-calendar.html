@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>活动排期 - 促销日历与节点管理</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#F0F1F5;--card:#FFFFFF;--text:#1B1F3B;--sub:#6B7280;--hint:#9CA3AF;--border:#E5E7EB;--accent:#534AB7;--danger:#DC2626;--warn:#D97706;--safe:#16A34A;--info:#2563EB;--radius:14px;--s:#E4393C;--a:#7C3AED;--b:#2563EB;--c:#6B7280}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6}
+input,select,button,textarea{font-family:inherit;font-size:14px}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px;font-size:13px}
+button{cursor:pointer;border:none;outline:none}
+.app{max-width:520px;margin:0 auto;min-height:100vh;padding:0 16px 90px}
+.topbar{display:flex;align-items:center;padding:16px 0 10px;gap:10px;position:sticky;top:0;background:var(--bg);z-index:50}
+.page-title{font-size:20px;font-weight:600;flex:1}
+.header-badge{font-size:11px;color:#fff;border-radius:10px;padding:2px 8px;font-weight:600}
+.card{background:var(--card);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.btn-primary{background:var(--text);color:#fff;border-radius:50px;padding:13px 32px;font-size:15px;font-weight:600;width:100%;transition:opacity .15s}.btn-primary:active{opacity:.85}
+.btn-sm{padding:6px 16px;font-size:13px;font-weight:500;border-radius:20px;background:#F3F4F6;color:var(--text)}
+.btn-accent{background:#EEEDFE;color:var(--accent);font-weight:600;border-radius:20px;padding:5px 14px;font-size:12px}
+.btn-danger-sm{background:#FEE2E2;color:var(--danger);font-weight:500;border-radius:10px;padding:3px 10px;font-size:11px}
+.btn-copy{background:#DCFCE7;color:var(--safe);font-weight:600;border-radius:20px;padding:8px 20px;font-size:13px}
+.field{margin-bottom:14px}.field-label{font-size:13px;color:var(--sub);margin-bottom:5px}
+.field-row{display:flex;gap:10px}.field-row .field{flex:1}
+.section-title{font-size:14px;font-weight:600;margin-bottom:10px}
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:#fff;color:var(--sub);cursor:pointer;transition:all .15s}
+.filter-chip.active{border-color:var(--accent);background:#EEEDFE;color:var(--accent);font-weight:600}
+.modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:20px}
+.modal-body{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:24px}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:16px}
+.confirm-modal{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);padding:20px}
+.confirm-box{background:#fff;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-box h3{font-size:16px;margin-bottom:8px}.confirm-box p{font-size:14px;color:var(--sub);margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}.confirm-btns button{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600}
+.confirm-cancel{background:#F3F4F6;color:var(--text)}.confirm-ok{background:var(--danger);color:#fff}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:500;z-index:999;animation:fadeInOut 2s ease;pointer-events:none}
+@keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(-10px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}85%{opacity:1}100%{opacity:0}}
+.empty{text-align:center;padding:3rem 1.5rem}.empty-title{font-size:18px;font-weight:600;margin:12px 0 8px}.empty-desc{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:24px}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.tab-bar-inner{display:flex;max-width:520px;width:100%}.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;background:none;color:var(--hint);font-size:10px;cursor:pointer;border:none}.tab-item.active{color:var(--text);font-weight:600}.tab-item svg{width:22px;height:22px}
+/* Level tags */
+.lvl{display:inline-block;padding:2px 10px;border-radius:6px;font-size:11px;font-weight:700}
+.lvl-S{color:#fff;background:var(--s)}.lvl-A{color:#fff;background:var(--a)}.lvl-B{color:#fff;background:var(--b)}.lvl-C{color:#fff;background:var(--c)}
+/* Activity card */
+.act-card{cursor:pointer;transition:box-shadow .2s;position:relative;overflow:hidden}.act-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.act-card .act-stripe{position:absolute;left:0;top:0;bottom:0;width:4px}
+.act-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.act-name{font-size:15px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act-dates{font-size:12px;color:var(--sub);margin-bottom:8px}
+/* Deadline chips */
+.dl-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.dl-chip{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500;display:flex;align-items:center;gap:4px}
+.dl-chip.done{background:#DCFCE7;color:var(--safe);text-decoration:line-through;opacity:.6}
+.dl-chip.ok{background:#EFF6FF;color:var(--info)}
+.dl-chip.soon{background:#FEF3C7;color:var(--warn)}
+.dl-chip.urgent{background:#FEE2E2;color:var(--danger);font-weight:700}
+.dl-chip.overdue{background:#991B1B;color:#fff}
+/* Countdown banner */
+.countdown-banner{padding:12px 16px;border-radius:var(--radius);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.countdown-banner.urgent{background:#FEF2F2;border:1px solid #FECACA}
+.countdown-banner.soon{background:#FEF3C7;border:1px solid #FDE68A}
+.cb-num{font-size:28px;font-weight:800;flex-shrink:0;width:50px;text-align:center}
+.cb-info{flex:1;font-size:13px}
+/* Task checklist */
+.task-item{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:13px}
+.task-item:last-child{border:none}
+.task-check{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;margin-top:1px}
+.task-check.checked{background:var(--safe);border-color:var(--safe);color:#fff}
+.task-text{flex:1}.task-text.checked{text-decoration:line-through;color:var(--hint)}
+.task-due{font-size:11px;color:var(--hint);flex-shrink:0}
+/* Review card */
+.review-card{background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px;margin-top:12px}
+/* Calendar mini */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:14px}
+.cal-head{font-size:10px;color:var(--hint);text-align:center;padding:4px 0;font-weight:600}
+.cal-day{text-align:center;padding:6px 2px;font-size:12px;border-radius:8px;cursor:pointer;position:relative;min-height:32px;display:flex;align-items:center;justify-content:center}
+.cal-day.today{font-weight:700;background:#EEEDFE;color:var(--accent)}
+.cal-day.other{color:var(--hint);opacity:.4}
+.cal-day .cal-dot{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%}
+/* SKU price row */
+.sku-price-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:12px}
+.sku-price-row:last-child{border:none}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.2/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useMemo}=React;
+const gid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const KEY='act-calendar-v1';
+const ld=()=>{try{return JSON.parse(localStorage.getItem(KEY))||null}catch{return null}};
+const sv=d=>localStorage.setItem(KEY,JSON.stringify(d));
+const today=new Date();const todayStr=today.toISOString().slice(0,10);
+const fmtDate=s=>{if(!s)return'';const d=new Date(s);return`${d.getMonth()+1}/${d.getDate()}`};
+const diffDays=(a,b)=>Math.ceil((new Date(a)-new Date(b))/(864e5));
+const LEVELS=[
+  {id:'S',label:'S级大促',color:'#E4393C',examples:'618/双11/年货节'},
+  {id:'A',label:'A级品类日',color:'#7C3AED',examples:'超品日/品类日/行业日'},
+  {id:'B',label:'B级促销',color:'#2563EB',examples:'周年庆/开学季/38节'},
+  {id:'C',label:'C级日常',color:'#6B7280',examples:'秒杀/闪购/日常满减'},
+];
+// Task templates by level
+const TASK_TEMPLATES={
+  S:[
+    {label:'确认活动排期和资源位名额',offsetDays:-30},
+    {label:'提报资源位（首焦/频道banner/搜索）',offsetDays:-25},
+    {label:'确认参与SKU和活动价',offsetDays:-22},
+    {label:'和品牌方确认活动价格授权',offsetDays:-20},
+    {label:'提交商品报名',offsetDays:-18},
+    {label:'备货需求计算（用大促备货计算器）',offsetDays:-18},
+    {label:'提交创意素材（主图/海报/详情页活动楼层）',offsetDays:-12},
+    {label:'检查商详页合规性（用商详巡检）',offsetDays:-7},
+    {label:'价格锁定确认',offsetDays:-3},
+    {label:'活动首日巡检（价格/库存/页面）',offsetDays:0},
+    {label:'活动中期复盘（调整备货）',offsetDays:7},
+    {label:'活动结束复盘（填写实际数据）',offsetDays:null},
+  ],
+  A:[
+    {label:'确认品类日/超品日排期',offsetDays:-20},
+    {label:'提报资源位',offsetDays:-15},
+    {label:'确认SKU和活动价',offsetDays:-12},
+    {label:'提交商品报名',offsetDays:-10},
+    {label:'备货确认',offsetDays:-10},
+    {label:'提交素材',offsetDays:-5},
+    {label:'价格锁定',offsetDays:-2},
+    {label:'活动巡检',offsetDays:0},
+    {label:'活动结束复盘',offsetDays:null},
+  ],
+  B:[
+    {label:'确认活动排期',offsetDays:-15},
+    {label:'提报SKU和资源位',offsetDays:-10},
+    {label:'备货确认',offsetDays:-8},
+    {label:'提交素材',offsetDays:-5},
+    {label:'价格锁定',offsetDays:-2},
+    {label:'活动结束复盘',offsetDays:null},
+  ],
+  C:[
+    {label:'确认活动信息',offsetDays:-5},
+    {label:'提报SKU',offsetDays:-3},
+    {label:'确认库存',offsetDays:-2},
+    {label:'活动巡检',offsetDays:0},
+  ],
+};
+// Seasonal hints
+const SEASONS=[
+  {month:1,label:'年货节/政企年初采购',level:'S'},
+  {month:3,label:'38大促',level:'B'},
+  {month:5,label:'618预热开始',level:'S'},
+  {month:6,label:'618正式期',level:'S'},
+  {month:8,label:'开学季/教育采购高峰',level:'B'},
+  {month:9,label:'99大促',level:'B'},
+  {month:11,label:'双11',level:'S'},
+  {month:12,label:'年末政企突击采购',level:'B'},
+];
+
+function App(){
+  const stored=ld();
+  const [acts,setActs]=useState(stored?.acts||[]);
+  const [tab,setTab]=useState('upcoming');
+  const [filter,setFilter]=useState('all');
+  const [showAdd,setShowAdd]=useState(false);
+  const [editId,setEditId]=useState(null);
+  const [detailId,setDetailId]=useState(null);
+  const [confirm,setConfirm]=useState(null);
+  const [toast,setToast]=useState(null);
+  const [calMonth,setCalMonth]=useState(today.getMonth());
+  const [calYear,setCalYear]=useState(today.getFullYear());
+
+  useEffect(()=>{sv({acts});},[acts]);
+  const showToast=m=>{setToast(m);setTimeout(()=>setToast(null),2000);};
+  const copyText=t=>{navigator.clipboard?.writeText(t).then(()=>showToast('✅ 已复制'));};
+
+  // Derived
+  const getStatus=a=>{if(!a.startDate)return'draft';const s=diffDays(a.startDate,todayStr),e=a.endDate?diffDays(a.endDate,todayStr):s;if(e<0)return'ended';if(s<=0)return'active';return'upcoming';};
+  const getNextDeadline=a=>{if(!a.tasks?.length)return null;const pending=a.tasks.filter(t=>!t.done&&t.dueDate).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));return pending[0]||null;};
+  const getUrgentCount=()=>{let c=0;acts.forEach(a=>{const nd=getNextDeadline(a);if(nd){const d=diffDays(nd.dueDate,todayStr);if(d>=0&&d<=3)c++;}});return c;};
+
+  const sorted=useMemo(()=>{let l=[...acts];if(filter!=='all')l=l.filter(a=>a.level===filter);
+    return l.sort((a,b)=>{const sa=getStatus(a),sb=getStatus(b);const o={active:0,upcoming:1,draft:2,ended:3};if(o[sa]!==o[sb])return o[sa]-o[sb];
+      const na=getNextDeadline(a),nb=getNextDeadline(b);if(na&&nb)return na.dueDate.localeCompare(nb.dueDate);if(na)return -1;if(nb)return 1;return(a.startDate||'').localeCompare(b.startDate||'');});
+  },[acts,filter]);
+
+  const urgentActs=acts.filter(a=>{const nd=getNextDeadline(a);return nd&&diffDays(nd.dueDate,todayStr)>=0&&diffDays(nd.dueDate,todayStr)<=3;});
+
+  // CRUD
+  const delAct=id=>{setActs(a=>a.filter(x=>x.id!==id));setConfirm(null);setDetailId(null);showToast('已删除');};
+  const toggleTask=(actId,taskId)=>{setActs(as=>as.map(a=>a.id===actId?{...a,tasks:a.tasks.map(t=>t.id===taskId?{...t,done:!t.done,doneDate:!t.done?todayStr:null}:t)}:a));};
+  const updateAct=(id,fields)=>{setActs(as=>as.map(a=>a.id===id?{...a,...fields}:a));};
+
+  // ========== DASHBOARD ==========
+  function Dashboard(){
+    const curSeason=SEASONS.find(s=>s.month===today.getMonth()+1);
+    const activeActs=acts.filter(a=>getStatus(a)==='active');
+    const upcomingActs=sorted.filter(a=>getStatus(a)==='upcoming');
+
+    if(!acts.length)return(<div className="empty"><div style={{fontSize:48}}>📅</div><div className="empty-title">活动排期日历</div><div className="empty-desc">管理所有促销活动节点，不再错过deadline<br/>按活动级别自动生成任务清单</div><button className="btn-primary" style={{maxWidth:300,margin:'0 auto'}} onClick={()=>setShowAdd(true)}>创建第一个活动</button></div>);
+
+    return(<div>
+      {/* Urgent deadlines */}
+      {urgentActs.map(a=>{const nd=getNextDeadline(a);const d=diffDays(nd.dueDate,todayStr);
+        return<div key={a.id} className={`countdown-banner ${d<=1?'urgent':'soon'}`} onClick={()=>setDetailId(a.id)}>
+          <div className="cb-num" style={{color:d<=1?'var(--danger)':'var(--warn)'}}>{d===0?'今天':d===1?'明天':d+'天'}</div>
+          <div className="cb-info"><div style={{fontWeight:600}}><span className={`lvl lvl-${a.level}`}>{a.level}</span> {a.name}</div><div style={{color:d<=1?'#991B1B':'#92400E'}}>{nd.label}（{fmtDate(nd.dueDate)}截止）</div></div>
+        </div>;
+      })}
+
+      {curSeason&&<div className="card" style={{padding:'12px 16px',background:'#FFF7ED',border:'1px solid #FED7AA',marginBottom:14}}>
+        <div style={{fontSize:13,fontWeight:600,color:'var(--warn)'}}>📌 {today.getMonth()+1}月行业提醒</div>
+        <div style={{fontSize:12,color:'#92400E'}}>{curSeason.label}（{curSeason.level}级）— 确认是否有对应活动待创建</div>
+      </div>}
+
+      {activeActs.length>0&&<><div className="section-title">🔴 进行中（{activeActs.length}）</div>
+        {activeActs.map(a=><ActCard key={a.id} act={a}/>)}</>}
+
+      {upcomingActs.length>0&&<><div className="section-title" style={{marginTop:14}}>⏳ 即将到来（{upcomingActs.length}）</div>
+        {upcomingActs.slice(0,10).map(a=><ActCard key={a.id} act={a}/>)}</>}
+    </div>);
+  }
+
+  function ActCard({act}){
+    const st=getStatus(act);const nd=getNextDeadline(act);const ndDays=nd?diffDays(nd.dueDate,todayStr):null;
+    const doneTasks=act.tasks?.filter(t=>t.done).length||0;const totalTasks=act.tasks?.length||0;
+    const lv=LEVELS.find(l=>l.id===act.level);
+    return(<div className="card act-card" style={{paddingLeft:22}} onClick={()=>setDetailId(act.id)}>
+      <div className="act-stripe" style={{background:lv?.color||'var(--hint)'}}/>
+      <div className="act-header"><span className={`lvl lvl-${act.level}`}>{act.level}</span><span className="act-name">{act.name}</span>
+        {st==='active'&&<span style={{fontSize:11,padding:'2px 8px',borderRadius:6,background:'#FEE2E2',color:'var(--danger)',fontWeight:600}}>进行中</span>}
+        {st==='ended'&&<span style={{fontSize:11,padding:'2px 8px',borderRadius:6,background:'#F3F4F6',color:'var(--hint)'}}>已结束</span>}
+      </div>
+      <div className="act-dates">{act.startDate?`${fmtDate(act.startDate)} - ${fmtDate(act.endDate)}`:'日期待定'}{act.skuCount?` · ${act.skuCount}个SKU`:''}</div>
+      {nd&&st!=='ended'&&<div style={{fontSize:12,fontWeight:600,color:ndDays<=1?'var(--danger)':ndDays<=3?'var(--warn)':'var(--info)'}}>⏰ {nd.label}：{ndDays===0?'今天截止':ndDays<0?`已过${-ndDays}天`:`还有${ndDays}天`}</div>}
+      {totalTasks>0&&<div style={{display:'flex',alignItems:'center',gap:8,marginTop:6}}>
+        <div style={{flex:1,height:6,background:'#E5E7EB',borderRadius:3,overflow:'hidden'}}><div style={{height:'100%',borderRadius:3,background:doneTasks===totalTasks?'var(--safe)':'var(--accent)',width:`${totalTasks?doneTasks/totalTasks*100:0}%`}}/></div>
+        <span style={{fontSize:11,color:'var(--hint)'}}>{doneTasks}/{totalTasks}</span>
+      </div>}
+    </div>);
+  }
+
+  // ========== CALENDAR VIEW ==========
+  function CalendarView(){
+    const first=new Date(calYear,calMonth,1);const startDay=first.getDay();const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+    const prevDays=new Date(calYear,calMonth,0).getDate();
+    const cells=[];
+    for(let i=0;i<startDay;i++)cells.push({day:prevDays-startDay+1+i,other:true});
+    for(let i=1;i<=daysInMonth;i++)cells.push({day:i,other:false,date:`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`});
+    const rem=(startDay+daysInMonth)%7;if(rem)for(let i=1;i<=7-rem;i++)cells.push({day:i,other:true});
+
+    const getActsForDate=d=>acts.filter(a=>a.startDate&&a.endDate&&d>=a.startDate&&d<=a.endDate);
+    const months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    const prevMonth=()=>{if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1);};
+    const nextMonth=()=>{if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1);}else setCalMonth(m=>m+1);};
+
+    return(<div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+        <button className="btn-sm" onClick={prevMonth}>◀</button>
+        <span style={{fontSize:16,fontWeight:600}}>{calYear}年{months[calMonth]}</span>
+        <button className="btn-sm" onClick={nextMonth}>▶</button>
+      </div>
+      <div className="cal-grid">
+        {['日','一','二','三','四','五','六'].map(d=><div key={d} className="cal-head">{d}</div>)}
+        {cells.map((c,i)=>{const actsOnDay=c.date?getActsForDate(c.date):[];const isToday=c.date===todayStr;
+          return<div key={i} className={`cal-day ${isToday?'today':''} ${c.other?'other':''}`}>{c.day}
+            {actsOnDay.length>0&&<div className="cal-dot" style={{background:LEVELS.find(l=>l.id===actsOnDay[0].level)?.color||'var(--accent)'}}/>}
+          </div>;
+        })}
+      </div>
+      {/* Activities this month */}
+      <div className="section-title">{months[calMonth]}活动</div>
+      {acts.filter(a=>{if(!a.startDate)return false;const s=a.startDate.slice(0,7),e=(a.endDate||a.startDate).slice(0,7),m=`${calYear}-${String(calMonth+1).padStart(2,'0')}`;return s<=m&&e>=m;}).map(a=><ActCard key={a.id} act={a}/>)}
+    </div>);
+  }
+
+  // ========== DETAIL ==========
+  function DetailView(){
+    const act=acts.find(a=>a.id===detailId);if(!act)return null;
+    const st=getStatus(act);const lv=LEVELS.find(l=>l.id===act.level);const doneTasks=act.tasks?.filter(t=>t.done).length||0;
+    return(<div className="modal" onClick={()=>setDetailId(null)}><div className="modal-body" onClick={e=>e.stopPropagation()} style={{maxWidth:520}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+        <div style={{fontSize:17,fontWeight:600,display:'flex',alignItems:'center',gap:8}}><span className={`lvl lvl-${act.level}`}>{act.level}</span>{act.name}</div>
+        <button className="btn-sm" onClick={()=>setDetailId(null)}>关闭</button>
+      </div>
+      <div style={{fontSize:13,color:'var(--sub)',marginBottom:14}}>{act.startDate?`${act.startDate} ~ ${act.endDate}`:'日期待定'} · {lv?.examples||''}</div>
+      {act.note&&<div style={{fontSize:13,color:'var(--sub)',marginBottom:14,padding:'10px 12px',background:'#F9FAFB',borderRadius:8}}>{act.note}</div>}
+
+      {/* Task checklist */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+        <div className="section-title" style={{margin:0}}>✅ 任务清单 ({doneTasks}/{act.tasks?.length||0})</div>
+      </div>
+      {act.tasks?.map(t=>{const d=t.dueDate?diffDays(t.dueDate,todayStr):null;const overdue=t.dueDate&&!t.done&&d<0;
+        return<div key={t.id} className="task-item">
+          <div className={`task-check ${t.done?'checked':''}`} onClick={()=>toggleTask(act.id,t.id)}>{t.done?'✓':''}</div>
+          <div className={`task-text ${t.done?'checked':''}`}>{t.label}{overdue&&<span style={{color:'var(--danger)',fontSize:11,marginLeft:4}}>已过{-d}天!</span>}</div>
+          {t.dueDate&&<div className="task-due" style={{color:t.done?'var(--safe)':overdue?'var(--danger)':d<=3?'var(--warn)':'var(--hint)'}}>{fmtDate(t.dueDate)}</div>}
+        </div>;
+      })}
+
+      {/* SKU & pricing */}
+      {act.skus?.length>0&&<><div className="section-title" style={{marginTop:14}}>📦 参与SKU与活动价</div>
+        {act.skus.map(s=><div key={s.id} className="sku-price-row">
+          <span style={{flex:1,fontWeight:500}}>{s.name}</span>
+          <span style={{color:'var(--hint)'}}>日常¥{s.normalPrice||'-'}</span>
+          <span style={{color:'var(--danger)',fontWeight:600}}>活动¥{s.promoPrice||'-'}</span>
+        </div>)}</>}
+
+      {/* Review section */}
+      {st==='ended'&&<div className="review-card">
+        <div className="section-title" style={{margin:'0 0 8px',color:'var(--safe)'}}>📊 活动复盘</div>
+        <div className="field-row">
+          <div className="field"><div className="field-label">预估GMV</div><input type="number" value={act.estGmv||''} onChange={e=>updateAct(act.id,{estGmv:parseFloat(e.target.value)||0})} placeholder="0"/></div>
+          <div className="field"><div className="field-label">实际GMV</div><input type="number" value={act.actualGmv||''} onChange={e=>updateAct(act.id,{actualGmv:parseFloat(e.target.value)||0})} placeholder="0"/></div>
+        </div>
+        <div className="field-row">
+          <div className="field"><div className="field-label">预估销量(台)</div><input type="number" value={act.estQty||''} onChange={e=>updateAct(act.id,{estQty:parseInt(e.target.value)||0})} placeholder="0"/></div>
+          <div className="field"><div className="field-label">实际销量(台)</div><input type="number" value={act.actualQty||''} onChange={e=>updateAct(act.id,{actualQty:parseInt(e.target.value)||0})} placeholder="0"/></div>
+        </div>
+        {act.actualGmv>0&&act.estGmv>0&&<div style={{fontSize:13,fontWeight:600,color:act.actualGmv>=act.estGmv?'var(--safe)':'var(--danger)',marginTop:4}}>达成率: {Math.round(act.actualGmv/act.estGmv*100)}%</div>}
+        <div className="field" style={{marginTop:8}}><div className="field-label">复盘备注</div><textarea value={act.reviewNote||''} onChange={e=>updateAct(act.id,{reviewNote:e.target.value})} placeholder="经验教训、下次改进点..."/></div>
+      </div>}
+
+      <div style={{display:'flex',gap:8,marginTop:16}}>
+        <button className="btn-accent" style={{flex:1}} onClick={()=>{setDetailId(null);setEditId(act.id);}}>✏️ 编辑</button>
+        <button className="btn-copy" style={{flex:1,fontSize:12}} onClick={()=>{
+          let t=`【${act.level}级】${act.name}\n${act.startDate||'?'} ~ ${act.endDate||'?'}\n\n任务进度 ${doneTasks}/${act.tasks?.length||0}：\n`;
+          act.tasks?.forEach(tk=>{t+=`${tk.done?'✅':'⬜'} ${tk.label}${tk.dueDate?' ('+fmtDate(tk.dueDate)+')':''}\n`;});
+          if(act.skus?.length){t+='\n参与SKU：\n';act.skus.forEach(s=>{t+=`· ${s.name} 日常¥${s.normalPrice||'-'} → 活动¥${s.promoPrice||'-'}\n`;});}
+          copyText(t);
+        }}>📋 复制</button>
+        <button className="btn-danger-sm" style={{padding:'8px 16px',fontSize:13,borderRadius:20}} onClick={()=>setConfirm({title:'删除',text:`删除「${act.name}」？`,onOk:()=>delAct(act.id)})}>🗑</button>
+      </div>
+    </div></div>);
+  }
+
+  // ========== ADD/EDIT ==========
+  function EditModal(){
+    const isEdit=!!editId;const ex=isEdit?acts.find(a=>a.id===editId):null;
+    const [name,setName]=useState(ex?.name||'');const [level,setLevel]=useState(ex?.level||'B');
+    const [startDate,setStartDate]=useState(ex?.startDate||'');const [endDate,setEndDate]=useState(ex?.endDate||'');
+    const [note,setNote]=useState(ex?.note||'');
+    const [skus,setSkusL]=useState(ex?.skus||[]);
+    const [skuName,setSkuName]=useState('');const [skuNP,setSkuNP]=useState('');const [skuPP,setSkuPP]=useState('');
+
+    const addSku=()=>{if(!skuName.trim())return;setSkusL(s=>[...s,{id:gid(),name:skuName,normalPrice:parseFloat(skuNP)||0,promoPrice:parseFloat(skuPP)||0}]);setSkuName('');setSkuNP('');setSkuPP('');};
+
+    const doSave=()=>{
+      if(!name.trim())return;
+      // Generate tasks from template if new
+      let tasks=ex?.tasks||[];
+      if(!isEdit||!tasks.length){
+        const tpl=TASK_TEMPLATES[level]||TASK_TEMPLATES.C;
+        tasks=tpl.map(t=>({id:gid(),label:t.label,dueDate:t.offsetDays!==null&&startDate?new Date(new Date(startDate).getTime()+t.offsetDays*864e5).toISOString().slice(0,10):null,done:false}));
+      }
+      const act={id:isEdit?editId:gid(),name,level,startDate,endDate,note,skus:skus,skuCount:skus.length,tasks,estGmv:ex?.estGmv||0,actualGmv:ex?.actualGmv||0,estQty:ex?.estQty||0,actualQty:ex?.actualQty||0,reviewNote:ex?.reviewNote||''};
+      if(isEdit)setActs(as=>as.map(a=>a.id===editId?act:a));
+      else setActs(as=>[act,...as]);
+      setShowAdd(false);setEditId(null);showToast(isEdit?'已更新':'已创建');
+    };
+    const close=()=>{setShowAdd(false);setEditId(null);};
+
+    return(<div className="modal" onClick={close}><div className="modal-body" onClick={e=>e.stopPropagation()}>
+      <div className="modal-title">{isEdit?'编辑':'创建'}活动</div>
+      <div className="field"><div className="field-label">活动名称 *</div><input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="如：618年中大促"/></div>
+      <div className="field"><div className="field-label">活动级别</div><div className="filter-row" style={{marginBottom:0}}>{LEVELS.map(l=><button key={l.id} className={`filter-chip ${level===l.id?'active':''}`} style={level===l.id?{borderColor:l.color,background:l.color+'15',color:l.color}:{}} onClick={()=>setLevel(l.id)}>{l.id} {l.label}</button>)}</div><div style={{fontSize:11,color:'var(--hint)',marginTop:4}}>{LEVELS.find(l=>l.id===level)?.examples}</div></div>
+      <div className="field-row"><div className="field"><div className="field-label">开始日期</div><input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)}/></div><div className="field"><div className="field-label">结束日期</div><input type="date" value={endDate} onChange={e=>setEndDate(e.target.value)}/></div></div>
+      <div className="field"><div className="field-label">备注</div><textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="资源位/预算/特殊要求..."/></div>
+
+      <div className="section-title">📦 参与SKU（选填）</div>
+      {skus.map(s=><div key={s.id} style={{display:'flex',alignItems:'center',gap:6,marginBottom:6,fontSize:12}}>
+        <span style={{flex:1}}>{s.name}</span><span style={{color:'var(--hint)'}}>¥{s.normalPrice}</span><span>→</span><span style={{color:'var(--danger)',fontWeight:600}}>¥{s.promoPrice}</span>
+        <button style={{background:'none',color:'var(--hint)',fontSize:14}} onClick={()=>setSkusL(ss=>ss.filter(x=>x.id!==s.id))}>✕</button>
+      </div>)}
+      <div style={{display:'flex',gap:6,marginBottom:14}}>
+        <input type="text" value={skuName} onChange={e=>setSkuName(e.target.value)} placeholder="SKU名称" style={{flex:2}}/>
+        <input type="number" value={skuNP} onChange={e=>setSkuNP(e.target.value)} placeholder="日常价" style={{flex:1}}/>
+        <input type="number" value={skuPP} onChange={e=>setSkuPP(e.target.value)} placeholder="活动价" style={{flex:1}}/>
+        <button className="btn-accent" onClick={addSku} style={{flexShrink:0}}>+</button>
+      </div>
+
+      {!isEdit&&startDate&&<div style={{fontSize:12,color:'var(--safe)',marginBottom:10}}>✅ 将根据{level}级模板自动生成{(TASK_TEMPLATES[level]||[]).length}个任务节点</div>}
+      <button className="btn-primary" onClick={doSave} disabled={!name.trim()}>{isEdit?'保存':'创建活动'}</button>
+    </div></div>);
+  }
+
+  // ========== ALL LIST ==========
+  function AllList(){
+    const endedActs=sorted.filter(a=>getStatus(a)==='ended');
+    const otherActs=sorted.filter(a=>getStatus(a)!=='ended');
+    return(<div>
+      <div className="filter-row">{[['all','全部'],['S','S级'],['A','A级'],['B','B级'],['C','C级']].map(([k,v])=><button key={k} className={`filter-chip${filter===k?' active':''}`} onClick={()=>setFilter(k)}>{v}</button>)}</div>
+      {otherActs.map(a=><ActCard key={a.id} act={a}/>)}
+      {endedActs.length>0&&<><div className="section-title" style={{marginTop:14,color:'var(--hint)'}}>已结束（{endedActs.length}）</div>
+        {endedActs.map(a=><ActCard key={a.id} act={a}/>)}</>}
+      {!sorted.length&&<div className="empty"><div className="empty-title">暂无活动</div></div>}
+    </div>);
+  }
+
+  return(<div className="app">
+    <div className="topbar">
+      <span className="page-title">📅 活动排期</span>
+      {getUrgentCount()>0&&<span className="header-badge" style={{background:'var(--danger)'}}>{getUrgentCount()}个即将截止</span>}
+      <button className="btn-accent" onClick={()=>setShowAdd(true)}>+ 新活动</button>
+    </div>
+
+    {tab==='upcoming'&&<Dashboard/>}
+    {tab==='calendar'&&<CalendarView/>}
+    {tab==='all'&&<AllList/>}
+
+    {detailId&&<DetailView/>}
+    {(showAdd||editId)&&<EditModal/>}
+    {confirm&&<div className="confirm-modal" onClick={()=>setConfirm(null)}><div className="confirm-box" onClick={e=>e.stopPropagation()}><h3>{confirm.title}</h3><p>{confirm.text}</p><div className="confirm-btns"><button className="confirm-cancel" onClick={()=>setConfirm(null)}>取消</button><button className="confirm-ok" onClick={confirm.onOk}>确认</button></div></div></div>}
+    {toast&&<div className="toast">{toast}</div>}
+
+    <div className="tab-bar"><div className="tab-bar-inner">
+      <button className={`tab-item${tab==='upcoming'?' active':''}`} onClick={()=>setTab('upcoming')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>即将到来</button>
+      <button className={`tab-item${tab==='calendar'?' active':''}`} onClick={()=>setTab('calendar')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>日历视图</button>
+      <button className={`tab-item${tab==='all'?' active':''}`} onClick={()=>setTab('all')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8m8 4H8m2-8H8"/></svg>全部活动</button>
+    </div></div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

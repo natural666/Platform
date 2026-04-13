@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>客诉雷达 - 会议平板客诉分析看板</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#F0F1F5;--card:#FFFFFF;--text:#1B1F3B;--sub:#6B7280;--hint:#9CA3AF;--border:#E5E7EB;--accent:#534AB7;--danger:#DC2626;--warn:#D97706;--safe:#16A34A;--info:#2563EB;--radius:14px;
+--c-install:#6366F1;--c-func:#F59E0B;--c-logistics:#EF4444;--c-service:#8B5CF6;--c-other:#6B7280}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;overflow-x:hidden}
+input,select,button,textarea{font-family:inherit;font-size:14px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:56px}
+button{cursor:pointer;border:none;outline:none}
+.app{max-width:520px;margin:0 auto;min-height:100vh;padding:0 16px 90px}
+.topbar{display:flex;align-items:center;padding:16px 0 12px;gap:10px;position:sticky;top:0;background:var(--bg);z-index:50}
+.page-title{font-size:20px;font-weight:600;flex:1}
+.header-badge{font-size:12px;color:#fff;border-radius:10px;padding:2px 9px;font-weight:600}
+.card{background:var(--card);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.summary-row{display:flex;gap:8px;margin-bottom:14px}
+.summary-box{flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.summary-num{font-size:20px;font-weight:700;margin-bottom:1px}
+.summary-label{font-size:10px;color:var(--sub)}
+.tag{display:inline-block;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.tag-danger{color:var(--danger);background:#FEE2E2}
+.tag-warn{color:var(--warn);background:#FEF3C7}
+.tag-safe{color:var(--safe);background:#DCFCE7}
+.tag-accent{color:var(--accent);background:#EEEDFE}
+.btn-primary{background:var(--text);color:#fff;border-radius:50px;padding:13px 32px;font-size:15px;font-weight:600;width:100%;transition:opacity .15s}
+.btn-primary:active{opacity:.85}
+.btn-sm{padding:6px 16px;font-size:13px;font-weight:500;border-radius:20px;background:#F3F4F6;color:var(--text)}
+.btn-accent{background:#EEEDFE;color:var(--accent);font-weight:600;border-radius:20px;padding:5px 14px;font-size:12px}
+.btn-danger-sm{background:#FEE2E2;color:var(--danger);font-weight:500;border-radius:10px;padding:3px 10px;font-size:11px}
+.field{margin-bottom:14px}
+.field-label{font-size:13px;color:var(--sub);margin-bottom:5px}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+.section-title{font-size:14px;font-weight:600;margin:14px 0 10px;display:flex;align-items:center;gap:6px}
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:#fff;color:var(--sub);cursor:pointer;transition:all .15s}
+.filter-chip.active{border-color:var(--accent);background:#EEEDFE;color:var(--accent);font-weight:600}
+.modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:20px}
+.modal-body{background:#fff;border-radius:16px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;padding:24px}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:16px}
+.alert-banner{background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px}
+.alert-banner.warn{background:#FFFBEB;border-color:#FDE68A}
+.alert-banner .a-title{font-size:13px;font-weight:600;color:var(--danger);margin-bottom:4px}
+.alert-banner.warn .a-title{color:var(--warn)}
+.alert-banner .a-text{font-size:12px;color:#991B1B;line-height:1.7}
+.alert-banner.warn .a-text{color:#92400E}
+.confirm-modal{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);padding:20px}
+.confirm-box{background:#fff;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-box h3{font-size:16px;margin-bottom:8px}
+.confirm-box p{font-size:14px;color:var(--sub);margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns button{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600}
+.confirm-cancel{background:#F3F4F6;color:var(--text)}
+.confirm-ok{background:var(--danger);color:#fff}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.tab-bar-inner{display:flex;max-width:520px;width:100%}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;background:none;color:var(--hint);font-size:11px;cursor:pointer;border:none}
+.tab-item.active{color:var(--text);font-weight:600}
+.tab-item svg{width:22px;height:22px}
+.empty{text-align:center;padding:3rem 1.5rem}
+.empty-title{font-size:18px;font-weight:600;margin:12px 0 8px}
+.empty-desc{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:28px}
+/* complaint card */
+.complaint-card{padding:14px 16px;transition:box-shadow .2s;cursor:pointer;position:relative;overflow:hidden}
+.complaint-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.complaint-card.sla-overdue{border-left:4px solid var(--danger)}
+.complaint-card.sla-urgent{border-left:4px solid var(--warn)}
+.cc-type-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.status-tag{padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.st-pending{background:#FEF3C7;color:var(--warn)}
+.st-processing{background:#DBEAFE;color:var(--info)}
+.st-resolved{background:#DCFCE7;color:var(--safe)}
+.st-escalated{background:#FEE2E2;color:var(--danger)}
+.sla-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0}
+.sla-overdue-badge{background:#FEE2E2;color:var(--danger)}
+.sla-urgent-badge{background:#FEF3C7;color:var(--warn)}
+.sla-ok-badge{background:#DCFCE7;color:var(--safe)}
+/* detail info grid */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.info-item{padding:8px 10px;background:#F9FAFB;border-radius:8px}
+.info-item-label{font-size:10px;color:var(--hint);margin-bottom:2px}
+.info-item-val{font-size:13px;font-weight:500;word-break:break-all}
+.info-item.full{grid-column:1/-1}
+/* chart stuff */
+.hbar-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.hbar-label{width:72px;font-size:12px;color:var(--sub);text-align:right;flex-shrink:0}
+.hbar-wrap{flex:1;height:22px;background:#F3F4F6;border-radius:6px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:6px;transition:width .5s;display:flex;align-items:center;padding-left:8px}
+.hbar-val{font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.hbar-val-out{font-size:11px;font-weight:600;color:var(--sub);margin-left:6px;flex-shrink:0}
+.brand-compare{display:flex;flex-direction:column;gap:6px}
+.brand-row{display:flex;align-items:center;gap:8px}
+.brand-name{width:52px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0}
+.brand-bars{flex:1;display:flex;height:20px;border-radius:5px;overflow:hidden}
+.brand-seg{height:100%}
+.brand-total{font-size:12px;font-weight:600;width:36px;text-align:right;flex-shrink:0;font-family:monospace}
+.donut-area{display:flex;justify-content:center;align-items:center;gap:20px;padding:10px 0}
+.donut-svg{width:130px;height:130px}
+.donut-legend{display:flex;flex-direction:column;gap:6px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.week-selector{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.week-selector button{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:500;background:#F3F4F6;color:var(--text)}
+.week-selector button:disabled{opacity:.3;cursor:default}
+.week-label{font-size:14px;font-weight:600;flex:1;text-align:center}
+.sla-card{background:#F8F7FF;border:1.5px solid #EEEDFE;border-radius:var(--radius);padding:16px 18px;margin-bottom:12px}
+.sla-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #EEEDFE;gap:12px}
+.sla-row:last-child{border:none;padding-bottom:0}
+.sla-row:first-child{padding-top:0}
+.sla-icon{font-size:20px;flex-shrink:0;width:32px;text-align:center}
+.sla-info{flex:1}
+.sla-type{font-size:13px;font-weight:600;margin-bottom:2px}
+.sla-time{font-size:12px;color:var(--accent);font-weight:500}
+.source-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;background:#F3F4F6;color:var(--sub)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="text/babel">
+const {useState, useEffect, useMemo} = React;
+const gid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const KEY = 'complaint-v10';
+function loadData() { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+function saveData(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
+const fmtD = ts => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const fmtShort = ts => { const d = new Date(ts); return `${d.getMonth()+1}/${d.getDate()}`; };
+
+const TYPES = [
+  {id:'install', label:'安装问题', color:'#6366F1', icon:'🔧', sla:'24小时内响应，48小时内解决', slaHours:48},
+  {id:'function', label:'产品功能', color:'#F59E0B', icon:'⚙️', sla:'远程24小时排查，换货7个工作日', slaHours:24},
+  {id:'logistics', label:'物流损坏', color:'#EF4444', icon:'📦', sla:'当天响应，3天内补发', slaHours:72},
+  {id:'service', label:'售后响应慢', color:'#8B5CF6', icon:'⏰', sla:'持续跟进直到解决', slaHours:168},
+  {id:'other', label:'其他', color:'#6B7280', icon:'📄', sla:'按京东标准流程时效', slaHours:72},
+];
+const BRANDS = ['MAXHUB','华为','皓丽','鸿合','其他'];
+const BC = {'MAXHUB':'#3B82F6','华为':'#E4393C','皓丽':'#10B981','鸿合':'#F97316','其他':'#9CA3AF'};
+const STS = [{id:'pending',label:'待处理'},{id:'processing',label:'处理中'},{id:'resolved',label:'已解决'},{id:'escalated',label:'已升级'}];
+const SOURCES = [{id:'online',label:'在线客服',icon:'💬'},{id:'phone',label:'电话客服',icon:'📞'},{id:'backend',label:'企业购后台',icon:'🖥️'},{id:'bd',label:'BD反馈',icon:'👤'},{id:'other',label:'其他渠道',icon:'📨'}];
+
+function getWeekRange(offset) {
+  const now = new Date();
+  const dow = now.getDay() || 7;
+  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow + 1 - offset * 7, 0, 0, 0, 0);
+  const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6, 23, 59, 59, 999);
+  return { start: mon.getTime(), end: sun.getTime(), label: `${fmtShort(mon)} - ${fmtShort(sun)}` };
+}
+
+// SLA status calculator
+function slaStatus(c) {
+  if (c.status === 'resolved') return { status: 'ok', text: '已解决' };
+  const tp = TYPES.find(t => t.id === c.type);
+  if (!tp) return { status: 'ok', text: '-' };
+  const elapsed = (Date.now() - c.time) / 3600000;
+  const remaining = tp.slaHours - elapsed;
+  if (remaining <= 0) return { status: 'overdue', text: `超时${Math.abs(Math.round(remaining))}h` };
+  if (remaining <= tp.slaHours * 0.3) return { status: 'urgent', text: `剩余${Math.round(remaining)}h` };
+  return { status: 'ok', text: `剩余${Math.round(remaining)}h` };
+}
+
+function Donut({data}) {
+  const total = data.reduce((s,d) => s + d.value, 0);
+  if (!total) return <div style={{textAlign:'center',padding:20,color:'var(--hint)',fontSize:13}}>本周暂无数据</div>;
+  const r=50,cx=60,cy=60; let cum=0;
+  const arcs = data.filter(d=>d.value>0).map(d=>{
+    const f=d.value/total, sa=cum*2*Math.PI-Math.PI/2+.005; cum+=f; const ea=cum*2*Math.PI-Math.PI/2-.005;
+    return{d:`M${cx+r*Math.cos(sa)},${cy+r*Math.sin(sa)} A${r},${r} 0 ${f>.5?1:0} 1 ${cx+r*Math.cos(ea)},${cy+r*Math.sin(ea)}`,color:d.color,label:d.label,value:d.value,pct:Math.round(f*100)};
+  });
+  return(<div className="donut-area"><svg className="donut-svg" viewBox="0 0 120 120">{arcs.map((a,i)=><path key={i} d={a.d} fill="none" stroke={a.color} strokeWidth="18" strokeLinecap="round"/>)}<text x={cx} y={cy-4} textAnchor="middle" fontSize="18" fontWeight="700" fill="var(--text)">{total}</text><text x={cx} y={cy+12} textAnchor="middle" fontSize="10" fill="var(--sub)">总客诉</text></svg>
+    <div className="donut-legend">{arcs.map((a,i)=><div key={i} className="legend-item"><div className="legend-dot" style={{background:a.color}}/>{a.label}<span style={{fontWeight:600,marginLeft:4}}>{a.value}</span><span style={{color:'var(--hint)',fontSize:11}}>({a.pct}%)</span></div>)}</div></div>);
+}
+
+function App() {
+  const stored = loadData();
+  const [complaints, setComplaints] = useState(stored?.complaints || []);
+  const [tab, setTab] = useState('dashboard');
+  const [showAdd, setShowAdd] = useState(false);
+  const [detailId, setDetailId] = useState(null);
+  const [confirm, setConfirm] = useState(null);
+  const [weekOffset, setWeekOffset] = useState(0);
+  // force re-render every minute for SLA countdown
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const iv = setInterval(() => setTick(t=>t+1), 60000); return () => clearInterval(iv); }, []);
+
+  useEffect(() => { saveData({complaints}); }, [complaints]);
+
+  const weekRange = useMemo(() => getWeekRange(weekOffset), [weekOffset]);
+  const weekC = useMemo(() => complaints.filter(c => c.time >= weekRange.start && c.time <= weekRange.end), [complaints, weekRange]);
+  const pendingAll = useMemo(() => complaints.filter(c => c.status === 'pending').length, [complaints]);
+  const overdueAll = useMemo(() => complaints.filter(c => c.status !== 'resolved' && slaStatus(c).status === 'overdue').length, [complaints, tick]);
+
+  // ========== COMPLAINT CARD COMPONENT ==========
+  function CCard({c, onClick}) {
+    const tp = TYPES.find(t => t.id === c.type);
+    const sla = slaStatus(c);
+    const src = SOURCES.find(s => s.id === c.source);
+    return (
+      <div className={`card complaint-card ${sla.status === 'overdue' ? 'sla-overdue' : sla.status === 'urgent' ? 'sla-urgent' : ''}`} onClick={onClick}>
+        <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:6}}>
+          <div className="cc-type-dot" style={{background:tp?.color}}/>
+          <span style={{fontSize:14,fontWeight:600,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.sku}</span>
+          <span className={`status-tag st-${c.status}`}>{STS.find(s=>s.id===c.status)?.label}</span>
+        </div>
+        <div style={{fontSize:13,marginBottom:6,paddingLeft:18}}>{c.desc}</div>
+        <div style={{display:'flex',gap:6,fontSize:12,color:'var(--sub)',paddingLeft:18,flexWrap:'wrap',alignItems:'center'}}>
+          <span>{tp?.icon} {tp?.label}</span>
+          <span>🏷️ {c.brand}</span>
+          {c.orderId && <span style={{fontFamily:'monospace',fontSize:11,background:'#F3F4F6',padding:'1px 6px',borderRadius:4}}>#{c.orderId}</span>}
+          {src && <span className="source-chip">{src.icon} {src.label}</span>}
+          <span style={{marginLeft:'auto', color:'var(--hint)'}}>{fmtD(c.time)}</span>
+        </div>
+        {c.status !== 'resolved' && (
+          <div style={{display:'flex',alignItems:'center',gap:6,marginTop:8,paddingLeft:18}}>
+            <span className={`sla-badge ${sla.status==='overdue'?'sla-overdue-badge':sla.status==='urgent'?'sla-urgent-badge':'sla-ok-badge'}`}>
+              {sla.status==='overdue'?'⚠️':'⏱️'} SLA {sla.text}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ========== DASHBOARD ==========
+  function Dashboard() {
+    const td = TYPES.map(t=>({...t,value:weekC.filter(c=>c.type===t.id).length}));
+    const bd = BRANDS.map(b=>{const bc=weekC.filter(c=>c.brand===b);return{brand:b,total:bc.length,types:TYPES.map(t=>({type:t.id,count:bc.filter(c=>c.type===t.id).length,color:t.color}))};}).filter(b=>b.total>0).sort((a,b)=>b.total-a.total);
+    const mx = Math.max(...bd.map(b=>b.total),1);
+    const weekPending = weekC.filter(c=>c.status==='pending').length;
+    const weekEscalated = weekC.filter(c=>c.status==='escalated').length;
+    const weekOverdue = weekC.filter(c=>c.status!=='resolved'&&slaStatus(c).status==='overdue').length;
+    const resolved = weekC.filter(c=>c.status==='resolved'&&c.resolvedTime);
+    const avgH = resolved.length?Math.round(resolved.reduce((s,c)=>s+(c.resolvedTime-c.time)/3600000,0)/resolved.length):0;
+    const abn = bd.filter(b=>{const ir=b.types.find(t=>t.type==='install')?.count||0;return b.total>=3&&ir/b.total>.5;});
+
+    // SLA overdue complaints for this week, sorted by urgency
+    const overdueList = weekC.filter(c=>c.status!=='resolved'&&slaStatus(c).status==='overdue').sort((a,b)=>{
+      const sa=TYPES.find(t=>t.id===a.type)?.slaHours||72, sb=TYPES.find(t=>t.id===b.type)?.slaHours||72;
+      return ((Date.now()-a.time)/3600000-sa) - ((Date.now()-b.time)/3600000-sb);
+    }).reverse();
+
+    return (<>
+      <div className="week-selector">
+        <button onClick={()=>setWeekOffset(w=>w+1)}>◀</button>
+        <span className="week-label">📅 {weekRange.label}</span>
+        <button onClick={()=>setWeekOffset(w=>Math.max(0,w-1))} disabled={weekOffset===0}>▶</button>
+      </div>
+
+      <div className="summary-row">
+        <div className="summary-box"><div className="summary-num">{weekC.length}</div><div className="summary-label">本周客诉</div></div>
+        <div className="summary-box"><div className="summary-num" style={{color:'var(--warn)'}}>{weekPending}</div><div className="summary-label">待处理</div></div>
+        <div className="summary-box"><div className="summary-num" style={{color:'var(--danger)'}}>{weekOverdue}</div><div className="summary-label">SLA超时</div></div>
+        <div className="summary-box"><div className="summary-num" style={{color:'var(--info)'}}>{avgH}h</div><div className="summary-label">平均解决</div></div>
+      </div>
+
+      {weekOverdue>0&&<div className="alert-banner"><div className="a-title">🚨 {weekOverdue}个客诉已超SLA时限</div><div className="a-text">以下客诉已超出规定处理时效，请立即跟进处理，避免客户满意度下降和考核扣分</div></div>}
+      {abn.length>0&&<div className="alert-banner warn"><div className="a-title">⚠️ {abn.map(b=>b.brand).join('、')} 安装投诉率异常</div><div className="a-text">安装问题占比超过50%，Review时重点施压改善服务商</div></div>}
+
+      {/* SLA overdue list */}
+      {overdueList.length>0&&<>
+        <div className="section-title" style={{color:'var(--danger)'}}>🔥 SLA超时工单（需立即处理）</div>
+        {overdueList.slice(0,5).map(c=><CCard key={c.id} c={c} onClick={()=>setDetailId(c.id)}/>)}
+      </>}
+
+      {weekC.length===0&&<div style={{textAlign:'center',padding:'2.5rem 1rem',color:'var(--hint)'}}><div style={{fontSize:42,marginBottom:10}}>📋</div><div style={{fontSize:15,fontWeight:500,color:'var(--sub)',marginBottom:6}}>本周暂无客诉记录</div><div style={{fontSize:13}}>点击「+ 录入」添加</div></div>}
+
+      {weekC.length>0&&<>
+        <div className="card"><div className="section-title" style={{margin:'0 0 6px'}}>📊 客诉类型分布</div><Donut data={td.map(t=>({label:t.label,value:t.value,color:t.color}))}/></div>
+
+        {bd.length>0&&<div className="card">
+          <div className="section-title" style={{margin:'0 0 10px'}}></div>
+          <div style={{fontSize:11,color:'var(--hint)',marginBottom:10}}>💡 安装投诉率偏高的品牌，可要求改善服务商或索要补偿</div>
+          <div className="brand-compare">{bd.map(b=><div key={b.brand} className="brand-row"><span className="brand-name" style={{color:BC[b.brand]}}>{b.brand}</span><div className="brand-bars">{b.types.filter(t=>t.count>0).map(t=><div key={t.type} className="brand-seg" style={{width:`${t.count/mx*100}%`,background:t.color}}/>)}</div><span className="brand-total">{b.total}</span></div>)}</div>
+          <div style={{display:'flex',gap:10,marginTop:10,flexWrap:'wrap'}}>{TYPES.map(t=><div key={t.id} style={{display:'flex',alignItems:'center',gap:4,fontSize:11,color:'var(--sub)'}}><div style={{width:8,height:8,borderRadius:2,background:t.color}}/>{t.label}</div>)}</div>
+        </div>}
+
+        <div className="card"><div className="section-title" style={{margin:'0 0 8px'}}>📈 各类型数量</div>{td.map(t=>{const p=weekC.length?Math.round(t.value/weekC.length*100):0;return(<div key={t.id} className="hbar-row"><span className="hbar-label">{t.icon} {t.label}</span><div className="hbar-wrap"><div className="hbar-fill" style={{width:`${Math.max(p,4)}%`,background:t.color}}>{p>=15&&<span className="hbar-val">{t.value}</span>}</div></div>{p<15&&<span className="hbar-val-out">{t.value}</span>}<span style={{fontSize:11,color:'var(--hint)',width:32,textAlign:'right'}}>{p}%</span></div>);})}</div>
+      </>}
+
+      <div className="sla-card">
+        <div className="section-title" style={{margin:'0 0 12px',color:'var(--accent)'}}>⏱️ 处理时效参考 (SLA)</div>
+        {TYPES.map(t=><div key={t.id} className="sla-row"><div className="sla-icon">{t.icon}</div><div className="sla-info"><div className="sla-type">{t.label}</div><div className="sla-time">{t.sla}</div></div></div>)}
+      </div>
+    </>);
+  }
+
+  // ========== LIST ==========
+  function ListTab() {
+    const [filter,setFilter]=useState('all');const [bf,setBf]=useState('all');
+    const filtered = useMemo(()=>{
+      let list = complaints.filter(c=>(filter==='all'||filter==='overdue'||c.status===filter)&&(bf==='all'||c.brand===bf));
+      if(filter==='overdue') list=list.filter(c=>c.status!=='resolved'&&slaStatus(c).status==='overdue');
+      // Sort: overdue first, then by time desc
+      return list.sort((a,b)=>{
+        const sa=a.status!=='resolved'?slaStatus(a).status:'ok', sb=b.status!=='resolved'?slaStatus(b).status:'ok';
+        const order={overdue:0,urgent:1,ok:2};
+        if(order[sa]!==order[sb]) return order[sa]-order[sb];
+        return b.time-a.time;
+      });
+    },[complaints,filter,bf,tick]);
+
+    if(!complaints.length) return <div className="empty"><div style={{fontSize:48}}>📋</div><div className="empty-title">暂无客诉记录</div><div className="empty-desc">点击「+ 录入」添加</div></div>;
+    return (<>
+      <div className="filter-row">
+        {[['all','全部'],['overdue','⚠️SLA超时'],['pending','待处理'],['processing','处理中'],['escalated','已升级'],['resolved','已解决']].map(([k,v])=>
+          <button key={k} className={`filter-chip${filter===k?' active':''}`} onClick={()=>setFilter(k)}>{v}</button>
+        )}
+      </div>
+      <div className="filter-row">{['all',...BRANDS].map(b=><button key={b} className={`filter-chip${bf===b?' active':''}`} onClick={()=>setBf(b)}>{b==='all'?'全品牌':b}</button>)}</div>
+      {!filtered.length&&<div style={{textAlign:'center',padding:'2rem',color:'var(--hint)',fontSize:13}}>无匹配记录</div>}
+      {filtered.slice(0,60).map(c=><CCard key={c.id} c={c} onClick={()=>setDetailId(c.id)}/>)}
+    </>);
+  }
+
+  // ========== DETAIL ==========
+  function DetailModal() {
+    const c = complaints.find(x=>x.id===detailId); if(!c) return null;
+    const tp = TYPES.find(t=>t.id===c.type);
+    const sla = slaStatus(c);
+    const src = SOURCES.find(s=>s.id===c.source);
+    const elapsed = c.resolvedTime ? Math.round((c.resolvedTime-c.time)/3600000) : Math.round((Date.now()-c.time)/3600000);
+    const updateSt = st => { setComplaints(cs=>cs.map(x=>x.id===c.id?{...x,status:st,resolvedTime:st==='resolved'?Date.now():x.resolvedTime}:x)); };
+
+    return (<div className="modal" onClick={()=>setDetailId(null)}><div className="modal-body" onClick={e=>e.stopPropagation()} style={{maxWidth:460}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+        <div className="modal-title" style={{margin:0}}>客诉详情</div>
+        <button className="btn-sm" onClick={()=>setDetailId(null)}>关闭</button>
+      </div>
+
+      {/* SLA warning banner */}
+      {sla.status==='overdue'&&<div className="alert-banner" style={{marginBottom:12}}><div className="a-title">🚨 SLA已超时 {sla.text}</div><div className="a-text">该工单已超出{tp?.label}规定处理时效（{tp?.slaHours}小时），请立即处理</div></div>}
+      {sla.status==='urgent'&&<div className="alert-banner warn" style={{marginBottom:12}}><div className="a-title">⏰ SLA即将超时 {sla.text}</div><div className="a-text">请尽快处理，避免超出时效</div></div>}
+
+      <div className="card" style={{marginBottom:12,background:'#F9FAFB'}}>
+        <div style={{fontWeight:600,fontSize:15,marginBottom:6}}>{c.sku}</div>
+        <div style={{fontSize:14,marginBottom:10}}>{c.desc}</div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:8,fontSize:12}}>
+          <span className="tag" style={{background:tp?.color+'22',color:tp?.color}}>{tp?.icon} {tp?.label}</span>
+          <span className="tag tag-accent">🏷️ {c.brand}</span>
+          <span className={`status-tag st-${c.status}`}>{STS.find(s=>s.id===c.status)?.label}</span>
+          {src&&<span className="source-chip">{src.icon} {src.label}</span>}
+        </div>
+      </div>
+
+      {/* Info grid */}
+      <div className="info-grid">
+        <div className="info-item"><div className="info-item-label">订单号</div><div className="info-item-val">{c.orderId||'未填写'}</div></div>
+        <div className="info-item"><div className="info-item-label">用户PIN</div><div className="info-item-val">{c.userPin||'未填写'}</div></div>
+        <div className="info-item"><div className="info-item-label">联系方式</div><div className="info-item-val">{c.contact||'未填写'}</div></div>
+        <div className="info-item"><div className="info-item-label">SKU编码</div><div className="info-item-val">{c.skuCode||'未填写'}</div></div>
+        <div className="info-item"><div className="info-item-label">录入时间</div><div className="info-item-val">{fmtD(c.time)}</div></div>
+        <div className="info-item"><div className="info-item-label">已耗时</div><div className="info-item-val">{elapsed}小时 {c.status==='resolved'?'✅':'⏳'}</div></div>
+      </div>
+
+      <div className="sla-card" style={{marginBottom:14,padding:'12px 14px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div><div style={{fontSize:12,color:'var(--accent)',fontWeight:600,marginBottom:2}}>处理时效要求</div><div style={{fontSize:13}}>{tp?.sla}</div></div>
+          <span className={`sla-badge ${sla.status==='overdue'?'sla-overdue-badge':sla.status==='urgent'?'sla-urgent-badge':'sla-ok-badge'}`} style={{fontSize:12,padding:'4px 12px'}}>{sla.status==='overdue'?'⚠️ 已超时':sla.status==='urgent'?'⏰ 即将超时':'✅ 正常'}</span>
+        </div>
+      </div>
+
+      <div className="section-title">更新状态</div>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>{STS.map(s=><button key={s.id} className={`filter-chip${c.status===s.id?' active':''}`} onClick={()=>updateSt(s.id)}>{s.label}</button>)}</div>
+      <button className="btn-danger-sm" style={{padding:'8px 16px',fontSize:13,borderRadius:20}} onClick={()=>{setConfirm({title:'删除确认',text:'确认删除此客诉？',onOk:()=>{setComplaints(cs=>cs.filter(x=>x.id!==c.id));setDetailId(null);setConfirm(null);}});}}>删除此记录</button>
+    </div></div>);
+  }
+
+  // ========== EXPORT ==========
+  function ExportTab() {
+    const doExport = range => {
+      const now=Date.now(),day=86400000; let start=0;
+      if(range==='week')start=now-7*day; else if(range==='month')start=now-30*day;
+      const data=complaints.filter(c=>c.time>=start).sort((a,b)=>b.time-a.time);
+      const rows=data.map(c=>{const tp=TYPES.find(t=>t.id===c.type);const src=SOURCES.find(s=>s.id===c.source);const sla=slaStatus(c);
+        return{日期:fmtD(c.time),订单号:c.orderId||'',用户PIN:c.userPin||'',联系方式:c.contact||'',品牌:c.brand,SKU名称:c.sku,SKU编码:c.skuCode||'',客诉类型:tp?.label||'',来源渠道:src?.label||'',问题描述:c.desc,状态:STS.find(s=>s.id===c.status)?.label||'',SLA状态:sla.status==='overdue'?'已超时':sla.status==='urgent'?'即将超时':'正常',处理时长:c.resolvedTime?Math.round((c.resolvedTime-c.time)/3600000)+'小时':'处理中',SLA参考:tp?.sla||''};
+      });
+      if(!rows.length)rows.push({日期:'暂无数据'});
+      const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[{wch:12},{wch:16},{wch:14},{wch:14},{wch:8},{wch:26},{wch:16},{wch:10},{wch:10},{wch:36},{wch:8},{wch:10},{wch:10},{wch:22}];
+      const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'客诉数据');
+      XLSX.writeFile(wb,`客诉分析_${range==='week'?'周报':range==='month'?'月报':'全量'}_${fmtD(Date.now())}.xlsx`);
+    };
+    return (<>
+      <div className="section-title">📤 导出客诉数据</div>
+      <div style={{fontSize:12,color:'var(--sub)',marginBottom:16}}>导出包含订单号、PIN、联系方式、SLA状态等完整字段</div>
+      <div className="card" style={{cursor:'pointer'}} onClick={()=>doExport('week')}><div style={{display:'flex',alignItems:'center',gap:10}}><span style={{fontSize:28}}>📊</span><div><div style={{fontWeight:600}}>导出周报数据</div><div style={{fontSize:12,color:'var(--sub)'}}>近7天客诉 · 含SLA超时标记</div></div></div></div>
+      <div className="card" style={{cursor:'pointer'}} onClick={()=>doExport('month')}><div style={{display:'flex',alignItems:'center',gap:10}}><span style={{fontSize:28}}>📋</span><div><div style={{fontWeight:600}}>导出月度Review数据</div><div style={{fontSize:12,color:'var(--sub)'}}>近30天完整记录 · 品牌方谈判用</div></div></div></div>
+      <div className="card" style={{cursor:'pointer'}} onClick={()=>doExport('all')}><div style={{display:'flex',alignItems:'center',gap:10}}><span style={{fontSize:28}}>💾</span><div><div style={{fontWeight:600}}>导出全量数据</div><div style={{fontSize:12,color:'var(--sub)'}}>所有历史记录完整导出</div></div></div></div>
+      <div className="section-title" style={{marginTop:20}}>🗑️ 数据管理</div>
+      <div className="card" style={{cursor:'pointer'}} onClick={()=>setConfirm({title:'清空',text:'清空所有客诉记录？不可恢复。',onOk:()=>{setComplaints([]);setConfirm(null);}})}><div style={{display:'flex',alignItems:'center',gap:10}}><span style={{fontSize:28}}>🗑️</span><div><div style={{fontWeight:600,color:'var(--danger)'}}>清空所有数据</div><div style={{fontSize:12,color:'var(--sub)'}}>删除全部记录</div></div></div></div>
+    </>);
+  }
+
+  // ========== ADD MODAL ==========
+  function AddModal() {
+    const [type,setType]=useState('install');
+    const [brand,setBrand]=useState('MAXHUB');
+    const [source,setSource]=useState('online');
+    const [sku,setSku]=useState('');
+    const [skuCode,setSkuCode]=useState('');
+    const [desc,setDesc]=useState('');
+    const [orderId,setOrderId]=useState('');
+    const [userPin,setUserPin]=useState('');
+    const [contact,setContact]=useState('');
+    const doAdd=()=>{
+      if(!desc.trim()||!sku.trim())return;
+      setComplaints(cs=>[{id:gid(),type,brand,source,sku,skuCode,desc,orderId,userPin,contact,time:Date.now(),status:'pending',resolvedTime:null},...cs]);
+      setWeekOffset(0);
+      setShowAdd(false);
+    };
+    return (<div className="modal" onClick={()=>setShowAdd(false)}><div className="modal-body" onClick={e=>e.stopPropagation()}>
+      <div className="modal-title">录入客诉</div>
+
+      <div className="field"><div className="field-label">客诉类型</div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:8}}>{TYPES.map(t=><button key={t.id} className={`filter-chip${type===t.id?' active':''}`} onClick={()=>setType(t.id)}>{t.icon} {t.label}</button>)}</div>
+      </div>
+      <div className="field"><div className="field-label">品牌</div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:8}}>{BRANDS.map(b=><button key={b} className={`filter-chip${brand===b?' active':''}`} onClick={()=>setBrand(b)}>{b}</button>)}</div>
+      </div>
+      <div className="field"><div className="field-label">来源渠道</div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:8}}>{SOURCES.map(s=><button key={s.id} className={`filter-chip${source===s.id?' active':''}`} onClick={()=>setSource(s.id)}>{s.icon} {s.label}</button>)}</div>
+      </div>
+
+      <div className="field-row">
+        <div className="field"><div className="field-label">SKU名称 *</div><input type="text" value={sku} onChange={e=>setSku(e.target.value)} placeholder="如: MAXHUB V6经典版 75寸"/></div>
+        <div className="field"><div className="field-label">SKU编码</div><input type="text" value={skuCode} onChange={e=>setSkuCode(e.target.value)} placeholder="100038374856"/></div>
+      </div>
+      <div className="field-row">
+        <div className="field"><div className="field-label">订单号</div><input type="text" value={orderId} onChange={e=>setOrderId(e.target.value)} placeholder="京东订单号"/></div>
+        <div className="field"><div className="field-label">用户PIN</div><input type="text" value={userPin} onChange={e=>setUserPin(e.target.value)} placeholder="企业购账号PIN"/></div>
+      </div>
+      <div className="field"><div className="field-label">客户联系方式</div><input type="text" value={contact} onChange={e=>setContact(e.target.value)} placeholder="手机号 / 企微号"/></div>
+      <div className="field"><div className="field-label">问题描述 *</div><textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="描述客户反馈的具体问题..."/></div>
+      <button className="btn-primary" onClick={doAdd}>提交客诉</button>
+    </div></div>);
+  }
+
+  return (<div className="app">
+    <div className="topbar">
+      <span className="page-title">📋 客诉雷达</span>
+      {overdueAll>0&&<span className="header-badge" style={{background:'var(--danger)'}}>{overdueAll}超时</span>}
+      {overdueAll===0&&pendingAll>0&&<span className="header-badge" style={{background:'var(--warn)'}}>{pendingAll}待处理</span>}
+      <button className="btn-accent" onClick={()=>setShowAdd(true)}>+ 录入</button>
+    </div>
+    {tab==='dashboard'&&<Dashboard/>}
+    {tab==='list'&&<ListTab/>}
+    {tab==='export'&&<ExportTab/>}
+    {detailId&&<DetailModal/>}
+    {showAdd&&<AddModal/>}
+    {confirm&&<div className="confirm-modal" onClick={()=>setConfirm(null)}><div className="confirm-box" onClick={e=>e.stopPropagation()}><h3>{confirm.title}</h3><p>{confirm.text}</p><div className="confirm-btns"><button className="confirm-cancel" onClick={()=>setConfirm(null)}>取消</button><button className="confirm-ok" onClick={confirm.onOk}>确认</button></div></div></div>}
+    <div className="tab-bar"><div className="tab-bar-inner">
+      <button className={`tab-item${tab==='dashboard'?' active':''}`} onClick={()=>setTab('dashboard')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>分析看板</button>
+      <button className={`tab-item${tab==='list'?' active':''}`} onClick={()=>setTab('list')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8m8 4H8m2-8H8"/></svg>客诉列表</button>
+      <button className={`tab-item${tab==='export'?' active':''}`} onClick={()=>setTab('export')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>导出数据</button>
+    </div></div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

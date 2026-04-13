@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>库存水位 - 会议平板库存预警</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#F0F1F5;--card:#FFFFFF;--text:#1B1F3B;--sub:#6B7280;--hint:#9CA3AF;--border:#E5E7EB;--accent:#534AB7;--danger:#DC2626;--warn:#D97706;--safe:#16A34A;--info:#2563EB;--radius:14px;--promo:#D946EF}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;overflow-x:hidden}
+input,select,button,textarea{font-family:inherit;font-size:14px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px;font-size:13px;line-height:1.6}
+button{cursor:pointer;border:none;outline:none}
+.app{max-width:520px;margin:0 auto;min-height:100vh;padding:0 16px 90px}
+.main{}
+.topbar{display:flex;align-items:center;padding:16px 0 8px;gap:8px;position:sticky;top:0;background:var(--bg);z-index:50;flex-wrap:wrap}
+.menu-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:10px;border:1px solid var(--border);flex-shrink:0}.menu-btn span{display:block;width:18px;height:2px;background:var(--text);position:relative}.menu-btn span::before,.menu-btn span::after{content:'';position:absolute;left:0;width:100%;height:2px;background:var(--text)}.menu-btn span::before{top:-5px}.menu-btn span::after{top:5px}
+.page-title{font-size:18px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.header-badge{font-size:11px;color:#fff;border-radius:10px;padding:2px 8px;font-weight:600;flex-shrink:0}
+.search-row{width:100%;position:relative;margin-top:2px}
+.search-row input{width:100%;padding:8px 14px 8px 34px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:#fff}
+.search-row input:focus{border-color:var(--accent)}
+.search-row .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--hint);font-size:14px;pointer-events:none}
+.search-row .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;color:var(--hint);font-size:16px;padding:2px 6px}
+.search-highlight{background:#FEF3C7;border-radius:3px;padding:0 2px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.summary-row{display:flex;gap:8px;margin-bottom:14px}
+.summary-box{flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.04)}
+.summary-num{font-size:20px;font-weight:700;margin-bottom:1px}.summary-label{font-size:10px;color:var(--sub)}
+.tag{display:inline-block;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:600}
+.tag-danger{color:var(--danger);background:#FEE2E2}.tag-warn{color:var(--warn);background:#FEF3C7}.tag-safe{color:var(--safe);background:#DCFCE7}.tag-promo{color:var(--promo);background:#FAE8FF}
+.btn-primary{background:var(--text);color:#fff;border-radius:50px;padding:13px 32px;font-size:15px;font-weight:600;width:100%;transition:opacity .15s}.btn-primary:active{opacity:.85}
+.btn-sm{padding:6px 16px;font-size:13px;font-weight:500;border-radius:20px;background:#F3F4F6;color:var(--text)}
+.btn-accent{background:#EEEDFE;color:var(--accent);font-weight:600;border-radius:20px;padding:5px 14px;font-size:12px}
+.btn-danger-sm{background:#FEE2E2;color:var(--danger);font-weight:500;border-radius:10px;padding:3px 10px;font-size:11px}
+.btn-copy{background:#DCFCE7;color:var(--safe);font-weight:600;border-radius:20px;padding:8px 20px;font-size:13px}
+.field{margin-bottom:14px}.field-label{font-size:13px;color:var(--sub);margin-bottom:5px}
+.field-row{display:flex;gap:10px}.field-row .field{flex:1}
+.section-title{font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--border);background:#fff;color:var(--sub);cursor:pointer;transition:all .15s}
+.filter-chip.active{border-color:var(--accent);background:#EEEDFE;color:var(--accent);font-weight:600}
+.modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:20px}
+.modal-body{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:24px}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:16px}
+.confirm-modal{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);padding:20px}
+.confirm-box{background:#fff;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-box h3{font-size:16px;margin-bottom:8px}.confirm-box p{font-size:14px;color:var(--sub);margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}.confirm-btns button{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:600}
+.confirm-cancel{background:#F3F4F6;color:var(--text)}.confirm-ok{background:var(--danger);color:#fff}
+.alert-banner{background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px}
+.alert-banner .a-title{font-size:13px;font-weight:600;color:var(--danger);margin-bottom:4px}
+.alert-banner .a-text{font-size:12px;color:#991B1B;line-height:1.7}
+.formula-box{background:#F8F7FF;border:1.5px solid #EEEDFE;border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.formula-text{font-size:13px;color:var(--accent);font-weight:500;text-align:center;font-family:monospace}
+.formula-desc{font-size:12px;color:var(--sub);text-align:center;margin-top:4px}
+.sku-card{transition:box-shadow .2s;cursor:pointer}.sku-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.wh-grid{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.wh-detail{padding:10px 12px;background:#F9FAFB;border-radius:10px;font-size:13px}
+.wh-detail.danger{background:#FEF2F2;border:1px solid #FECACA}.wh-detail.warn{background:#FFFBEB;border:1px solid #FDE68A}
+.wh-detail-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.wh-type{font-size:10px;padding:1px 5px;border-radius:4px;font-weight:600;flex-shrink:0}
+.wh-type.center{background:#DBEAFE;color:var(--info)}.wh-type.satellite{background:#F3E8FF;color:#7C3AED}.wh-type.fwd{background:#D1FAE5;color:#059669}
+.wh-bar-wrap{flex:1;height:14px;background:#E5E7EB;border-radius:7px;overflow:hidden}
+.wh-bar{height:100%;border-radius:7px;transition:width .5s}
+.log-item{padding:10px 0;border-bottom:1px solid #F3F4F6;font-size:13px;display:flex;align-items:flex-start;gap:8px}.log-item:last-child{border:none}
+.log-content{flex:1}.log-time{font-size:11px;color:var(--hint);margin-top:2px}
+.log-del{flex-shrink:0;background:none;color:var(--hint);font-size:16px;padding:2px;opacity:0;transition:opacity .15s}.log-item:hover .log-del{opacity:1}
+.wh-check{display:flex;flex-wrap:wrap;gap:8px}
+.wh-opt{display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:20px;font-size:13px;border:1.5px solid var(--border);background:#fff;color:var(--sub);cursor:pointer;transition:all .15s}
+.wh-opt.sel{border-color:var(--accent);background:#EEEDFE;color:var(--accent);font-weight:600}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:center;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.tab-bar-inner{display:flex;max-width:520px;width:100%}.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;background:none;color:var(--hint);font-size:10px;cursor:pointer;border:none}.tab-item.active{color:var(--text);font-weight:600}.tab-item svg{width:22px;height:22px}
+.empty{text-align:center;padding:3rem 1.5rem}.empty-title{font-size:18px;font-weight:600;margin:12px 0 8px}.empty-desc{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:28px}
+.add-wh-row{padding:12px;background:#FFFBEB;border-radius:10px;border:1px dashed var(--warn);margin-bottom:12px}.add-wh-row .field{margin-bottom:8px}
+.wh-edit-card{background:#F9FAFB;border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid var(--border)}
+.wh-edit-header{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-weight:600;font-size:13px}
+.wh-edit-fields{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+.wh-edit-fields .mini-field label{font-size:10px;color:var(--hint);display:block;margin-bottom:2px}
+.wh-edit-fields .mini-field input{padding:7px 8px;font-size:13px;text-align:center}
+.promo-toggle{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#FAE8FF;border:1.5px solid #E879F9;border-radius:12px;margin-bottom:14px}
+.promo-toggle.off{background:#F9FAFB;border-color:var(--border)}
+.promo-switch{width:44px;height:24px;border-radius:12px;background:var(--border);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.promo-switch.on{background:var(--promo)}.promo-switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}.promo-switch.on::after{left:22px}
+.promo-info{flex:1}.promo-label{font-size:14px;font-weight:600;color:var(--promo)}.promo-toggle.off .promo-label{color:var(--sub)}.promo-desc{font-size:11px;color:var(--promo);margin-top:2px}.promo-toggle.off .promo-desc{color:var(--hint)}
+.promo-mult{display:flex;gap:6px;margin-top:6px}.promo-mult button{padding:4px 12px;border-radius:8px;font-size:12px;font-weight:600;border:1.5px solid #E879F9;background:#fff;color:var(--promo)}.promo-mult button.active{background:var(--promo);color:#fff}
+.speech-box{background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px;margin-top:12px}
+.speech-box textarea{background:#fff;border:1px solid #BBF7D0;font-size:12px;line-height:1.7;min-height:140px}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:500;z-index:999;animation:fadeInOut 2s ease;pointer-events:none}
+@keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(-10px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}85%{opacity:1}100%{opacity:0}}
+.xfer-card{background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:12px;color:#1E40AF}
+.xfer-arrow{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:4px}
+.xfer-arrow .arr{color:var(--info);font-size:16px}
+.xfer-tag{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600}
+.xfer-tag.same{background:#DCFCE7;color:var(--safe)}.xfer-tag.adj{background:#FEF3C7;color:var(--warn)}.xfer-tag.far{background:#FEE2E2;color:var(--danger)}
+.gap-card{background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:10px 12px;margin-bottom:6px;font-size:12px;color:#991B1B}
+.arrive-info{font-size:11px;padding:8px 10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;margin-top:6px;color:#92400E}
+.sidebar{width:280px;position:fixed;left:-280px;top:0;bottom:0;background:#fff;z-index:200;transition:left .3s;box-shadow:4px 0 24px rgba(0,0,0,.12);display:flex;flex-direction:column}.sidebar.open{left:0}
+.sidebar-mask{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199;display:none}.sidebar-mask.show{display:block}
+.sidebar-header{padding:20px 18px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}.sidebar-title{font-size:16px;font-weight:600}
+.sidebar-list{flex:1;overflow-y:auto;padding:10px 0}
+.sidebar-item{padding:12px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s;font-size:14px;gap:8px}.sidebar-item:hover{background:#F5F6FA}.sidebar-item.active{background:#EEEDFE;color:var(--accent);font-weight:600}
+.sidebar-item .del-date{display:none;color:var(--danger);font-size:12px;padding:2px 8px;border-radius:6px;background:#FEE2E2;flex-shrink:0}.sidebar-item:hover .del-date{display:block}
+.date-input-row{display:flex;gap:8px;padding:12px 18px}.date-input-row input{flex:1}
+/* 618 calculator */
+.calc-618{background:linear-gradient(135deg,#FF6B35 0%,#E4393C 100%);border-radius:var(--radius);padding:18px;margin-bottom:14px;color:#fff}
+.calc-618 .calc-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.calc-618 .calc-desc{font-size:12px;opacity:.85;margin-bottom:14px}
+.calc-618 .calc-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.calc-618 .calc-fields label{font-size:11px;display:block;margin-bottom:3px;opacity:.85}
+.calc-618 .calc-fields input,.calc-618 .calc-fields select{padding:8px 10px;border:1.5px solid rgba(255,255,255,.4);border-radius:8px;background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:600}
+.calc-618 .calc-fields input::placeholder{color:rgba(255,255,255,.5)}
+.calc-618 .calc-fields input:focus,.calc-618 .calc-fields select:focus{border-color:#fff;background:rgba(255,255,255,.25)}
+.calc-618 select option{color:var(--text);background:#fff}
+.calc-btn{background:#fff;color:#E4393C;font-weight:700;border-radius:50px;padding:10px 24px;font-size:14px;width:100%;transition:opacity .15s}.calc-btn:active{opacity:.85}
+.calc-result-card{background:#fff;border-radius:12px;margin-top:12px;padding:14px;color:var(--text)}
+.calc-result-card .cr-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:12px}
+.calc-result-card .cr-row:last-child{border:none}
+.cr-wh{font-weight:500;display:flex;align-items:center;gap:4px}
+.cr-nums{display:flex;gap:12px;font-family:monospace;font-size:11px}
+.cr-need{font-weight:700;color:var(--danger);font-size:13px}
+.cr-ok{font-weight:700;color:var(--safe);font-size:13px}
+.cr-total{display:flex;justify-content:space-between;padding:10px 0 0;margin-top:8px;border-top:2px solid var(--border);font-weight:700;font-size:14px}
+.calc-apply-btn{background:var(--accent);color:#fff;font-weight:600;border-radius:50px;padding:10px 24px;font-size:13px;width:100%;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.2/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useRef}=React;
+const gid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const KEY='inv-alert-v17';
+const INIT_WH=[
+  {id:'bj',name:'华北中心仓',city:'北京',type:'center',region:'华北'},{id:'sh',name:'华东中心仓',city:'上海/昆山',type:'center',region:'华东'},
+  {id:'gz',name:'华南中心仓',city:'广州',type:'center',region:'华南'},{id:'wh',name:'华中中心仓',city:'武汉',type:'center',region:'华中'},
+  {id:'cd',name:'西南中心仓',city:'成都',type:'center',region:'西南'},{id:'sy',name:'东北中心仓',city:'沈阳',type:'center',region:'东北'},
+  {id:'xa',name:'西北中心仓',city:'西安',type:'center',region:'西北'},{id:'tj',name:'天津卫星仓',city:'天津',type:'satellite',region:'华北'},
+  {id:'nj',name:'南京卫星仓',city:'南京',type:'satellite',region:'华东'},{id:'hz',name:'杭州卫星仓',city:'杭州',type:'satellite',region:'华东'},
+  {id:'sz',name:'深圳卫星仓',city:'深圳',type:'satellite',region:'华南'},{id:'cs',name:'长沙卫星仓',city:'长沙',type:'satellite',region:'华中'},
+  {id:'cq',name:'重庆卫星仓',city:'重庆',type:'satellite',region:'西南'},{id:'jn',name:'济南卫星仓',city:'济南',type:'satellite',region:'华东'},
+  {id:'fz',name:'福州前置仓',city:'福州',type:'fwd',region:'华南'},{id:'km',name:'昆明前置仓',city:'昆明',type:'fwd',region:'西南'},
+];
+const WHL={center:'中心仓',satellite:'卫星仓',fwd:'前置仓'};
+const WH_TYPES=[{id:'center',label:'中心仓'},{id:'satellite',label:'卫星仓'},{id:'fwd',label:'前置仓'}];
+const RADJ={'华北':['华东','华中','东北'],'华东':['华北','华中','华南'],'华南':['华东','华中','西南'],'华中':['华北','华东','华南','西南'],'西南':['华中','华南','西北'],'东北':['华北'],'西北':['华北','西南']};
+function regionDist(r1,r2){if(r1===r2)return 0;if(RADJ[r1]?.includes(r2))return 1;return 2;}
+function regionDays(d){return d===0?1:d===1?2:3;}
+function ld(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null;}catch{return null;}}
+function sv(d){localStorage.setItem(KEY,JSON.stringify(d));}
+
+function App(){
+  const stored=ld();
+  const [warehouses,setWarehouses]=useState(stored?.warehouses||INIT_WH);
+  const [dates,setDates]=useState(stored?.dates||[]);
+  const [currentDate,setCurrentDate]=useState(stored?.currentDate||null);
+  const [logs,setLogs]=useState(stored?.logs||[]);
+  const [tab,setTab]=useState('dashboard');
+  const [showAdd,setShowAdd]=useState(false);const [editId,setEditId]=useState(null);
+  const [filter,setFilter]=useState('all');const [confirm,setConfirm]=useState(null);
+  const [detailId,setDetailId]=useState(null);const [toast,setToast]=useState(null);const [editWhId,setEditWhId]=useState(null);
+  const [sideOpen,setSideOpen]=useState(false);const [newDateVal,setNewDateVal]=useState('');
+  // Search
+  const [searchQ,setSearchQ]=useState('');const searchRef=useRef(null);
+  // Promo Calculator state (App-level to survive re-renders)
+  const [pcName,setPcName]=useState('618大促');const [pcStart,setPcStart]=useState('');const [pcDays,setPcDays]=useState(30);const [pcGrowth,setPcGrowth]=useState(15);const [pcLead,setPcLead]=useState(14);const [pcBuf,setPcBuf]=useState(7);
+  const [pcBatches,setPcBatches]=useState([{id:gid(),pct:60,label:'第一批（保底量）',orderDays:25,note:'确保活动开始不断货'},{id:gid(),pct:25,label:'第二批（追加量）',orderDays:12,note:'根据实际销售调整'},{id:gid(),pct:15,label:'第三批（冲刺量）',orderDays:5,note:'可增可减，控制剩余'}]);
+  const [pcResults,setPcResults]=useState(null);const [pcPresets]=useState([{name:'618大促',days:30,growth:15,lead:14,buf:7},{name:'双11',days:25,growth:20,lead:14,buf:7},{name:'年货节',days:20,growth:10,lead:12,buf:5},{name:'品类日/超品日',days:7,growth:30,lead:10,buf:3},{name:'自定义',days:10,growth:10,lead:10,buf:5}]);
+
+  const curDateObj=dates.find(d=>d.id===currentDate);
+  const skus=curDateObj?.skus||[];
+  const promoOn=curDateObj?.promoOn||false;
+  const promoMult=curDateObj?.promoMult||1.5;
+
+  useEffect(()=>{sv({warehouses,dates,currentDate,logs});},[warehouses,dates,currentDate,logs]);
+  const addLog=m=>{setLogs(l=>[{id:gid(),msg:m,time:Date.now()},...l].slice(0,200));};
+  const delLog=id=>{setLogs(l=>l.filter(x=>x.id!==id));};
+  const showToast=m=>{setToast(m);setTimeout(()=>setToast(null),2000);};
+  const copyText=t=>{if(navigator.clipboard){navigator.clipboard.writeText(t).then(()=>showToast('✅ 已复制'));return;}const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);showToast('✅ 已复制');};
+
+  const addDate=()=>{const v=newDateVal.trim();if(!v)return;const prev=dates[0];
+    const copied=prev?.skus?prev.skus.map(s=>({...s,id:gid(),warehouses:s.warehouses.map(w=>({...w,stock:0,dailySales:0,leadTime:w.leadTime,buffer:w.buffer}))})):[];
+    const nd={id:gid(),label:v,skus:copied,promoOn:prev?.promoOn||false,promoMult:prev?.promoMult||1.5,ts:Date.now()};
+    setDates(ds=>[nd,...ds]);setCurrentDate(nd.id);setNewDateVal('');setSideOpen(false);setTab('dashboard');addLog('创建日期页: '+v);};
+  const delDate=id=>{setDates(ds=>ds.filter(d=>d.id!==id));if(currentDate===id)setCurrentDate(dates.find(d=>d.id!==id)?.id||null);setConfirm(null);addLog('删除日期页');};
+  const selectDate=id=>{setCurrentDate(id);setSideOpen(false);setTab('dashboard');setDetailId(null);};
+  const updateCurDate=fn=>{setDates(ds=>ds.map(d=>{if(d.id!==currentDate)return d;const n=JSON.parse(JSON.stringify(d));fn(n);return n;}));};
+  const setPromoOn=v=>{updateCurDate(d=>{d.promoOn=v;});addLog(v?'开启大促':'关闭大促');};
+  const setPromoMult=v=>{updateCurDate(d=>{d.promoMult=v;});addLog('倍率→×'+v);};
+  const setSkus=fn=>{updateCurDate(d=>{d.skus=typeof fn==='function'?fn(d.skus):fn;});};
+  const addWarehouse=wh=>{setWarehouses(ws=>[...ws,wh]);addLog('新建仓库: '+wh.name);};
+  const updateWarehouse=(id,fields)=>{setWarehouses(ws=>ws.map(w=>w.id===id?{...w,...fields}:w));};
+  const deleteWarehouse=id=>{const inUse=skus.some(s=>s.warehouses.some(w=>w.whId===id));if(inUse){showToast('⚠️ 仓库被使用中');return;}const wh=warehouses.find(w=>w.id===id);setWarehouses(ws=>ws.filter(w=>w.id!==id));addLog('删除仓库: '+(wh?.name||id));};
+
+  const whED=w=>promoOn?Math.ceil(w.dailySales*promoMult):w.dailySales;
+  const whSafe=w=>whED(w)*(w.leadTime+w.buffer);
+  const whAvail=w=>w.stock-(w.allocated||0);
+  const whSt=w=>{const s=whSafe(w),a=whAvail(w);if(a<=0)return'out';if(a<s*.5)return'danger';if(a<s)return'warn';return'safe';};
+  const whNeed=w=>Math.max(0,whSafe(w)-whAvail(w));
+  const whDays=w=>{const d=whED(w);return d>0?Math.floor(whAvail(w)/d):999;};
+  const whArrivalStock=w=>whAvail(w)-whED(w)*w.leadTime;
+  const skuTotalStock=s=>s.warehouses.reduce((a,w)=>a+whAvail(w),0);
+  const skuTotalSafe=s=>s.warehouses.reduce((a,w)=>a+whSafe(w),0);
+  const skuTotalDaily=s=>s.warehouses.reduce((a,w)=>a+whED(w),0);
+  const skuDays=s=>{const d=skuTotalDaily(s);return d>0?Math.floor(skuTotalStock(s)/d):999;};
+  const skuSt=s=>{let worst='safe';s.warehouses.forEach(w=>{const st=whSt(w);if(st==='out'||st==='danger')worst='danger';else if(st==='warn'&&worst==='safe')worst='warn';});if(skuTotalStock(s)<=0)worst='danger';return worst;};
+  const skuAlertWh=s=>s.warehouses.filter(w=>whSt(w)!=='safe').length;
+
+  function calcTransfers(sku){
+    const MIN_XFER=3;const deficits=[];const surpluses=[];
+    sku.warehouses.forEach(w=>{const wh=warehouses.find(j=>j.id===w.whId);if(!wh)return;const need=whNeed(w);const avail=whAvail(w);const safe=whSafe(w);
+      if(need>0)deficits.push({...w,wh,need,remaining:need});
+      else if(avail>safe){let surplus=avail-safe;if(promoOn)surplus=Math.floor(surplus*0.7);if(surplus>=MIN_XFER)surpluses.push({...w,wh,surplus,remaining:surplus});}
+    });const transfers=[];
+    deficits.forEach(def=>{if(def.remaining<=0)return;const candidates=surpluses.filter(s=>s.remaining>=MIN_XFER).map(s=>{const rd=regionDist(def.wh.region,s.wh.region);return{...s,rd,days:regionDays(rd),score:rd*1000-(s.wh.type==='center'?500:0)-s.remaining};}).sort((a,b)=>a.score-b.score);
+      candidates.forEach(cand=>{if(def.remaining<=0||cand.remaining<MIN_XFER)return;const qty=Math.min(def.remaining,cand.remaining);if(qty<MIN_XFER)return;transfers.push({fromId:cand.whId,toId:def.whId,fromWh:cand.wh,toWh:def.wh,qty,days:cand.days,rd:cand.rd});def.remaining-=qty;cand.remaining-=qty;});
+    });const gaps=deficits.filter(d=>d.remaining>0).map(d=>({whId:d.whId,wh:d.wh,gap:d.remaining,leadTime:d.leadTime}));return{transfers,gaps};
+  }
+
+  function genSpeech(sku){const {transfers,gaps}=calcTransfers(sku);let text=`${sku.brand}对接人你好，${sku.name}库存情况通报：\n`;
+    if(transfers.length){text+=`\n━━ 第一步：内部调拨 ━━\n`;transfers.forEach(t=>{text+=`· ${t.fromWh.city} → ${t.toWh.city}：调${t.qty}台（${t.rd===0?'同区域':t.rd===1?'相邻':'跨区'}约${t.days}天）\n`;});}
+    if(gaps.length){text+=`\n━━ 第二步：品牌补货 ━━\n`;gaps.forEach(g=>{const arr=new Date(Date.now()+g.leadTime*864e5);text+=`· ${g.wh.city}：补${g.gap}台（期望${arr.getMonth()+1}月${arr.getDate()}日前入仓）\n`;});text+=`\n${promoOn?`近期大促（销量×${promoMult}），需求上升。`:''}请协调排产/发货，谢谢。`;}
+    if(transfers.length&&!gaps.length)text+=`\n✅ 内部调拨可完全覆盖，无需品牌方补货。`;
+    if(!transfers.length&&!gaps.length)text+=`\n各仓库存充足。`;return text;
+  }
+
+  const counts=useMemo(()=>{let d=0,w=0,sa=0;skus.forEach(x=>{const st=skuSt(x);if(st==='danger')d++;else if(st==='warn')w++;else sa++;});return{danger:d,warn:w,safe:sa,total:skus.length};},[skus,promoOn,promoMult]);
+
+  // Search + filter
+  const filtered=useMemo(()=>{let l=[...skus];
+    if(searchQ.trim()){const q=searchQ.trim().toLowerCase();l=l.filter(s=>s.name.toLowerCase().includes(q)||s.code?.toLowerCase().includes(q)||s.brand?.toLowerCase().includes(q));}
+    if(filter!=='all')l=l.filter(s=>filter==='danger'?skuSt(s)==='danger':skuSt(s)===filter);
+    return l.sort((a,b)=>{const o={danger:0,warn:1,safe:2};return o[skuSt(a)]-o[skuSt(b)];});
+  },[skus,filter,promoOn,promoMult,searchQ]);
+
+  // ========== 618 CALCULATOR ==========
+  // ========== PROMO CALCULATOR ==========
+  const applyPreset=p=>{setPcName(p.name);setPcDays(p.days);setPcGrowth(p.growth);setPcLead(p.lead);setPcBuf(p.buf);setPcResults(null);};
+  const addBatch=()=>{setPcBatches(b=>[...b,{id:gid(),pct:10,label:`第${b.length+1}批`,orderDays:5,note:''}]);};
+  const updateBatch=(id,f,v)=>{setPcBatches(bs=>bs.map(b=>b.id===id?{...b,[f]:f==='pct'||f==='orderDays'?parseInt(v)||0:v}:b));};
+  const delBatch=id=>{setPcBatches(bs=>bs.filter(b=>b.id!==id));};
+  const batchTotal=pcBatches.reduce((a,b)=>a+b.pct,0);
+
+  const doCalcPromo=()=>{
+    if(!skus.length){showToast('请先添加SKU');return;}
+    const res=skus.map(sku=>{
+      const whRes=sku.warehouses.map(w=>{
+        const wh=warehouses.find(j=>j.id===w.whId);
+        const promoDaily=Math.ceil(w.dailySales*(1+pcGrowth/100));
+        const promoDailySafe=promoDaily*(pcLead+pcBuf);
+        const totalNeed=promoDaily*pcDays;
+        const currentStock=whAvail(w);
+        const gap=Math.max(0,promoDailySafe-currentStock);
+        // Split gap into batches
+        const batches=pcBatches.map(b=>({...b,qty:Math.ceil(gap*b.pct/100)}));
+        return{whId:w.whId,wh,city:wh?.city||'?',type:wh?.type,promoDaily,promoDailySafe,totalNeed,currentStock,gap,batches};
+      });
+      return{name:sku.name,code:sku.code,brand:sku.brand,id:sku.id,whRes,totalGap:whRes.reduce((a,w)=>a+w.gap,0)};
+    });
+    setPcResults(res);addLog(`${pcName}备货计算（${pcDays}天/增长${pcGrowth}%/${pcBatches.length}批）`);
+  };
+
+  const doApplyPromo=()=>{
+    if(!pcResults)return;
+    const copied=skus.map(s=>{
+      const r=pcResults.find(x=>x.code===s.code||x.id===s.id);
+      return{...s,id:gid(),warehouses:s.warehouses.map(w=>{
+        const wr=r?.whRes.find(x=>x.whId===w.whId);
+        return{...w,stock:w.stock,dailySales:wr?wr.promoDaily:w.dailySales,leadTime:pcLead,buffer:pcBuf};
+      })};
+    });
+    const nd={id:gid(),label:`${pcName}备货基准`,skus:copied,promoOn:false,promoMult:1.5,ts:Date.now()};
+    setDates(ds=>[nd,...ds]);setCurrentDate(nd.id);setTab('dashboard');
+    addLog(`生成「${pcName}备货基准」日期页`);showToast(`✅ 已生成「${pcName}备货基准」`);
+  };
+
+  function PromoCalc(){
+    return(<div>
+      {/* Preset selector */}
+      <div style={{display:'flex',gap:6,marginBottom:12,flexWrap:'wrap'}}>{pcPresets.map(p=><button key={p.name} className={`filter-chip${pcName===p.name?' active':''}`} onClick={()=>applyPreset(p)}>{p.name}</button>)}</div>
+
+      <div className="calc-618">
+        <div className="calc-title">🔥 {pcName}备货计算器</div>
+        <div className="calc-desc">基于当前SKU数据，自动拆分批次，算出每批每仓备多少</div>
+        <div className="calc-fields">
+          <div><label>活动名称</label><input type="text" value={pcName} onChange={e=>setPcName(e.target.value)} placeholder="618大促"/></div>
+          <div><label>活动开始日期</label><input type="text" value={pcStart} onChange={e=>setPcStart(e.target.value)} placeholder="如 5月21日"/></div>
+          <div><label>活动总天数</label><input type="number" value={pcDays} onChange={e=>setPcDays(parseInt(e.target.value)||0)}/></div>
+          <div><label>预估增长率(%)</label><input type="number" value={pcGrowth} onChange={e=>setPcGrowth(parseInt(e.target.value)||0)}/></div>
+          <div><label>活动期补货周期</label><input type="number" value={pcLead} onChange={e=>setPcLead(parseInt(e.target.value)||0)}/></div>
+          <div><label>缓冲天数</label><input type="number" value={pcBuf} onChange={e=>setPcBuf(parseInt(e.target.value)||0)}/></div>
+        </div>
+
+        {/* Batch config */}
+        <div style={{marginTop:10,marginBottom:12}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}><span style={{fontSize:13,fontWeight:600,opacity:.9}}>📦 分批备货计划</span><span style={{fontSize:11,opacity:.7}}>合计: {batchTotal}%{batchTotal!==100&&' ⚠️'}</span></div>
+          {pcBatches.map((b,i)=><div key={b.id} style={{display:'flex',gap:6,alignItems:'center',marginBottom:6,fontSize:12}}>
+            <input type="text" value={b.label} onChange={e=>updateBatch(b.id,'label',e.target.value)} style={{flex:2,padding:'6px 8px',fontSize:12}} placeholder="批次名"/>
+            <input type="number" value={b.pct} onChange={e=>updateBatch(b.id,'pct',e.target.value)} style={{width:48,padding:'6px 4px',fontSize:12,textAlign:'center'}} placeholder="%"/>
+            <span style={{opacity:.7}}>%</span>
+            <span style={{opacity:.7,fontSize:10}}>活动前</span>
+            <input type="number" value={b.orderDays} onChange={e=>updateBatch(b.id,'orderDays',e.target.value)} style={{width:40,padding:'6px 4px',fontSize:12,textAlign:'center'}}/>
+            <span style={{opacity:.7,fontSize:10}}>天下单</span>
+            {pcBatches.length>1&&<button style={{background:'rgba(255,255,255,.2)',color:'#fff',borderRadius:4,padding:'2px 6px',fontSize:12}} onClick={()=>delBatch(b.id)}>✕</button>}
+          </div>)}
+          <button style={{background:'rgba(255,255,255,.2)',color:'#fff',borderRadius:8,padding:'4px 12px',fontSize:11,marginTop:2}} onClick={addBatch}>+ 添加批次</button>
+        </div>
+
+        <button className="calc-btn" onClick={doCalcPromo}>📊 计算备货需求</button>
+      </div>
+
+      {pcResults&&<div>
+        {/* Batch timeline */}
+        <div className="card" style={{padding:'14px',marginBottom:12}}>
+          <div style={{fontSize:14,fontWeight:600,marginBottom:10}}>📅 {pcName} 分批时间线</div>
+          {pcBatches.map((b,i)=>{
+            const orderDate=pcStart?`${pcStart}前${b.orderDays}天`:`活动前${b.orderDays}天`;
+            const arriveDate=pcStart?`${pcStart}前${Math.max(0,b.orderDays-pcLead)}天`:`活动前${Math.max(0,b.orderDays-pcLead)}天`;
+            const batchGap=pcResults.reduce((a,r)=>a+r.whRes.reduce((a2,w)=>{const bq=w.batches.find(x=>x.id===b.id);return a2+(bq?.qty||0);},0),0);
+            return<div key={b.id} style={{display:'flex',gap:10,alignItems:'flex-start',padding:'8px 0',borderBottom:i<pcBatches.length-1?'1px solid #F3F4F6':'none'}}>
+              <div style={{width:24,height:24,borderRadius:'50%',background:i===0?'var(--danger)':i===1?'var(--warn)':'var(--safe)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,flexShrink:0}}>{i+1}</div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:600,fontSize:13}}>{b.label}（{b.pct}%）→ <span style={{color:'var(--danger)'}}>{batchGap}台</span></div>
+                <div style={{fontSize:11,color:'var(--sub)',marginTop:2}}>📋 下单: {orderDate} · 📦 入仓: {arriveDate}</div>
+                {b.note&&<div style={{fontSize:11,color:'var(--hint)',marginTop:1}}>{b.note}</div>}
+              </div>
+            </div>;
+          })}
+        </div>
+
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+          <div className="section-title" style={{margin:0}}>📋 各SKU备货明细</div>
+          <button className="btn-copy" style={{fontSize:12,padding:'6px 14px'}} onClick={()=>{
+            let t=`${pcName}备货需求（${pcDays}天，增长${pcGrowth}%）\n补货周期${pcLead}天，缓冲${pcBuf}天\n\n`;
+            t+=`分批计划：\n`;pcBatches.forEach((b,i)=>{t+=`  ${b.label}：${b.pct}%，活动前${b.orderDays}天下单\n`;});t+='\n';
+            pcResults.forEach(r=>{t+=`【${r.name}】${r.code}\n`;r.whRes.forEach(w=>{
+              t+=`  ${w.city}：大促日均${w.promoDaily}台，安全${w.promoDailySafe}台，现有${w.currentStock}台`;
+              if(w.gap>0){t+=`，总缺${w.gap}台`;w.batches.forEach(b=>{if(b.qty>0)t+=`\n    → ${b.label}：${b.qty}台`;});}else{t+='，✅充足';}t+='\n';});t+='\n';});
+            copyText(t);
+          }}>📋 复制</button>
+        </div>
+
+        {pcResults.map(r=><div key={r.id} className="card" style={{padding:'12px 14px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+            <span style={{fontSize:14,fontWeight:600,flex:1}}>{r.name}</span>
+            {r.totalGap>0?<span className="tag tag-danger">需备{r.totalGap}台</span>:<span className="tag tag-safe">✅ 充足</span>}
+          </div>
+          {r.whRes.map(w=><div key={w.whId} style={{padding:'6px 0',borderBottom:'1px solid #F3F4F6',fontSize:12}}>
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+              <span className={`wh-type ${w.type}`}>{WHL[w.type]}</span><span style={{fontWeight:500}}>{w.city}</span>
+              <span style={{color:'var(--hint)',marginLeft:'auto',fontFamily:'monospace',fontSize:11}}>日均{w.promoDaily} · 安全{w.promoDailySafe} · 现有{w.currentStock}</span>
+              {w.gap>0?<span style={{color:'var(--danger)',fontWeight:700}}>+{w.gap}</span>:<span style={{color:'var(--safe)',fontWeight:600}}>✓</span>}
+            </div>
+            {w.gap>0&&<div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4,marginLeft:22}}>
+              {w.batches.filter(b=>b.qty>0).map(b=><span key={b.id} style={{fontSize:10,padding:'2px 6px',borderRadius:4,background:'#EFF6FF',color:'var(--info)',fontWeight:600}}>{b.label}: {b.qty}台</span>)}
+            </div>}
+          </div>)}
+        </div>)}
+
+        <div className="card" style={{background:'#F8F7FF',border:'1.5px solid #EEEDFE'}}>
+          <div className="cr-total"><span>全部SKU总备货量</span><span style={{color:'var(--danger)'}}>{pcResults.reduce((a,r)=>a+r.totalGap,0)}台</span></div>
+          <div style={{display:'flex',gap:12,flexWrap:'wrap',marginTop:8}}>
+            {pcBatches.map((b,i)=>{const bq=pcResults.reduce((a,r)=>a+r.whRes.reduce((a2,w)=>{const x=w.batches.find(x=>x.id===b.id);return a2+(x?.qty||0);},0),0);
+              return<span key={b.id} style={{fontSize:12,color:'var(--sub)'}}>{b.label}: <b>{bq}台</b></span>;
+            })}
+          </div>
+        </div>
+
+        <button className="calc-apply-btn" onClick={doApplyPromo}>🚀 生成「{pcName}备货基准」日期页</button>
+        <div style={{fontSize:11,color:'var(--hint)',textAlign:'center',marginTop:8,lineHeight:1.5}}>以大促日均替换当前日均，生成独立日期页，不影响已有数据</div>
+      </div>}
+
+      {!pcResults&&<div className="formula-box">
+        <div className="formula-text">大促安全水位 = 大促日均 × (补货周期 + 缓冲)</div>
+        <div className="formula-desc">备货缺口按批次比例拆分，每批标注下单和入仓时间</div>
+      </div>}
+
+      {!pcResults&&<div className="card" style={{padding:'14px',fontSize:13,color:'var(--sub)',lineHeight:1.8}}>
+        <div style={{fontWeight:600,color:'var(--text)',marginBottom:6}}>📌 备货经验法则</div>
+        <div>• <b>大促（618/双11）</b>：3批60%/25%/15%，活动前25/12/5天下单</div>
+        <div>• <b>中促（品类日/超品日）</b>：2批70%/30%，活动前15/5天下单</div>
+        <div>• <b>小促（周末促销等）</b>：1批100%，活动前10天下单</div>
+        <div>• 每批入仓后对比实际消耗，调整下一批数量</div>
+        <div>• 活动后立即把日均改回正常值的70%（需求被透支）</div>
+      </div>}
+    </div>);
+  }
+
+  // ========== DASHBOARD ==========
+  function Dashboard(){
+    if(!currentDate)return(<div className="empty"><div style={{fontSize:48}}>📅</div><div className="empty-title">先创建日期页</div><div className="empty-desc">点击左上角菜单创建今天的库存监控</div><button className="btn-primary" style={{maxWidth:300,margin:'0 auto'}} onClick={()=>setSideOpen(true)}>打开侧边栏</button></div>);
+    if(!skus.length)return(<div className="empty"><div style={{fontSize:48}}>📦</div><div className="empty-title">暂无库存监控</div><div className="empty-desc">点击「+ 添加」创建SKU</div><div className="formula-box"><div className="formula-text">安全库存 = 日均 × (补货周期 + 缓冲)</div><div className="formula-desc">缺货优先内部调拨，不足再品牌补货</div></div></div>);
+    return(<>
+      <div className={`promo-toggle ${promoOn?'':'off'}`}><div className={`promo-switch ${promoOn?'on':''}`} onClick={()=>setPromoOn(!promoOn)}/><div className="promo-info"><div className="promo-label">{promoOn?'🔥 大促模式':'大促模式'}</div><div className="promo-desc">{promoOn?`日均×${promoMult}，富余仓可调量打7折`:'快速压力测试用，精确备货用618计算器'}</div>{promoOn&&<div className="promo-mult">{[1.5,2,2.5,3].map(m=><button key={m} className={promoMult===m?'active':''} onClick={()=>setPromoMult(m)}>×{m}</button>)}</div>}</div></div>
+      <div className="summary-row"><div className="summary-box"><div className="summary-num" style={{color:'var(--danger)'}}>{counts.danger}</div><div className="summary-label">紧急</div></div><div className="summary-box"><div className="summary-num" style={{color:'var(--warn)'}}>{counts.warn}</div><div className="summary-label">偏低</div></div><div className="summary-box"><div className="summary-num" style={{color:'var(--safe)'}}>{counts.safe}</div><div className="summary-label">健康</div></div><div className="summary-box"><div className="summary-num">{counts.total}</div><div className="summary-label">总数</div></div></div>
+      <div className="formula-box"><div className="formula-text">到货时剩余 = 库存 - 日均 × 周期</div><div className="formula-desc">负数 = 补货到之前就断货{promoOn?' · ⚡大促':''}</div></div>
+      {counts.danger>0&&<div className="alert-banner"><div className="a-title">🚨 {counts.danger}个SKU紧急</div><div className="a-text">点击卡片查看调拨+补货方案</div></div>}
+      <div className="filter-row">{[['all','全部'],['danger','紧急'],['warn','偏低'],['safe','健康']].map(([k,v])=><button key={k} className={`filter-chip${filter===k?' active':''}`} onClick={()=>setFilter(k)}>{v}</button>)}</div>
+      {filtered.map(sku=>{const st=skuSt(sku),ts=skuTotalStock(sku),tsf=skuTotalSafe(sku),dl=skuDays(sku),aw=skuAlertWh(sku),pct=tsf>0?Math.min(100,Math.round(ts/tsf*100)):100,bc=st==='safe'?'var(--safe)':st==='warn'?'var(--warn)':'var(--danger)';
+        const {transfers,gaps}=calcTransfers(sku);const xq=transfers.reduce((a,t)=>a+t.qty,0);const gq=gaps.reduce((a,g)=>a+g.gap,0);
+        return(<div key={sku.id} className="card sku-card" onClick={()=>setDetailId(sku.id)}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span style={{fontSize:15,fontWeight:600,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sku.name}</span><span style={{background:'#F3F4F6',padding:'2px 8px',borderRadius:4,fontSize:11,fontFamily:'monospace',color:'var(--sub)',flexShrink:0}}>{sku.code}</span></div>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,flexWrap:'wrap'}}><span className={`tag tag-${st==='safe'?'safe':st==='warn'?'warn':'danger'}`}>{st==='danger'?'紧急':st==='warn'?'偏低':'健康'}</span>{aw>0&&<span style={{fontSize:11,color:'var(--danger)',fontWeight:600}}>{aw}仓预警</span>}<span style={{fontSize:12,color:'var(--sub)'}}>约{dl}天</span>{promoOn&&<span className="tag tag-promo">大促</span>}<span style={{fontSize:12,color:'var(--hint)',marginLeft:'auto'}}>{sku.brand}</span></div>
+          <div style={{display:'flex',alignItems:'center',gap:10}}><div className="wh-bar-wrap" style={{flex:1}}><div className="wh-bar" style={{width:`${pct}%`,background:bc}}/></div><span style={{fontSize:12,fontWeight:600,fontFamily:'monospace',width:80,textAlign:'right'}}>{ts}/{tsf}</span></div>
+          {st!=='safe'&&<div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>
+            {xq>0&&<div style={{fontSize:11,color:'var(--info)',background:'#EFF6FF',padding:'3px 8px',borderRadius:6,fontWeight:600}}>🔄 调拨{xq}台</div>}
+            {gq>0&&<div style={{fontSize:11,color:'var(--danger)',background:'#FEF2F2',padding:'3px 8px',borderRadius:6,fontWeight:600}}>📦 补货{gq}台</div>}
+            {xq>0&&!gq&&<div style={{fontSize:11,color:'var(--safe)',background:'#DCFCE7',padding:'3px 8px',borderRadius:6,fontWeight:600}}>✅ 调拨可覆盖</div>}
+          </div>}
+        </div>);
+      })}
+      {filtered.length===0&&searchQ&&<div style={{textAlign:'center',padding:'2rem',color:'var(--hint)',fontSize:14}}>没有找到匹配「{searchQ}」的SKU</div>}
+    </>);
+  }
+
+  // ========== DETAIL ==========
+  function DetailView(){const sku=skus.find(s=>s.id===detailId);if(!sku)return null;const ts=skuTotalStock(sku),tsf=skuTotalSafe(sku),st=skuSt(sku);const {transfers,gaps}=calcTransfers(sku);const [speechText,setSpeechText]=useState(()=>genSpeech(sku));
+    return(<div className="modal" onClick={()=>setDetailId(null)}><div className="modal-body" onClick={e=>e.stopPropagation()} style={{maxWidth:520}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}><div style={{fontSize:17,fontWeight:600}}>{sku.name}</div><button className="btn-sm" onClick={()=>setDetailId(null)}>关闭</button></div>
+      <div style={{fontSize:13,color:'var(--sub)',marginBottom:12}}>{sku.code} · {sku.brand} · 库存{ts}/{tsf}{promoOn?' · 大促':''}</div>
+      {st!=='safe'&&<div className="card" style={{padding:'12px 14px',marginBottom:12,background:'#F8FAFC',border:'1.5px solid #E2E8F0'}}><div style={{fontSize:13,fontWeight:600,marginBottom:6}}>📋 补货方案</div><div style={{display:'flex',gap:16,fontSize:12,flexWrap:'wrap'}}><span style={{color:'var(--info)'}}>🔄 调拨: {transfers.reduce((a,t)=>a+t.qty,0)}台</span><span style={{color:'var(--danger)'}}>📦 品牌补: {gaps.reduce((a,g)=>a+g.gap,0)}台</span></div></div>}
+      {transfers.length>0&&<><div className="section-title">🔄 第一步：内部调拨</div>{transfers.map((t,i)=><div key={i} className="xfer-card"><div className="xfer-arrow"><span className={`wh-type ${t.fromWh.type}`}>{WHL[t.fromWh.type]}</span>{t.fromWh.city}<span className="arr">→</span><span className={`wh-type ${t.toWh.type}`}>{WHL[t.toWh.type]}</span>{t.toWh.city}<span style={{marginLeft:'auto',fontWeight:700,fontSize:15}}>{t.qty}台</span></div><div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}><span className={`xfer-tag ${t.rd===0?'same':t.rd===1?'adj':'far'}`}>{t.rd===0?'同区域':t.rd===1?'相邻':'跨区'}</span><span>约{t.days}天</span><span style={{color:'var(--safe)'}}>源仓仍安全</span></div></div>)}{!gaps.length&&<div style={{fontSize:12,color:'var(--safe)',fontWeight:600,padding:'8px 12px',background:'#DCFCE7',borderRadius:8,marginBottom:10}}>✅ 调拨可完全覆盖</div>}</>}
+      {gaps.length>0&&<><div className="section-title" style={{marginTop:transfers.length?14:0}}>📦 第二步：品牌补货</div>{gaps.map((g,i)=><div key={i} className="gap-card"><span style={{fontWeight:600}}>{g.wh.city}</span> 缺 <span style={{fontWeight:700}}>{g.gap}台</span></div>)}</>}
+      <div className="section-title" style={{marginTop:14}}>📍 各仓明细</div>
+      <div className="wh-grid">{sku.warehouses.map(w=>{const wh=warehouses.find(j=>j.id===w.whId);if(!wh)return null;const av=whAvail(w),sf=whSafe(w),wst=whSt(w),nd=whNeed(w),dl=whDays(w),pc=sf>0?Math.min(100,Math.round(av/sf*100)):100,bc=wst==='safe'?'var(--safe)':wst==='warn'?'var(--warn)':'var(--danger)';const surplus=av>sf?av-sf:0;const arrStock=whArrivalStock(w);
+        return(<div key={w.whId} className={`wh-detail ${wst==='safe'?'':wst}`}><div className="wh-detail-head"><span className={`wh-type ${wh.type}`}>{WHL[wh.type]}</span><span style={{fontWeight:600}}>{wh.city}</span><span className={`tag tag-${wst==='safe'?'safe':wst==='warn'?'warn':'danger'}`} style={{marginLeft:'auto',fontSize:10,padding:'1px 6px'}}>{wst==='out'?'断货':wst==='danger'?'紧急':wst==='warn'?'偏低':'健康'}</span></div>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}><div className="wh-bar-wrap"><div className="wh-bar" style={{width:`${pc}%`,background:bc}}/></div><span style={{fontSize:12,fontFamily:'monospace',fontWeight:600}}>{av}/{sf}</span></div>
+          <div style={{display:'flex',gap:12,fontSize:11,color:'var(--sub)',flexWrap:'wrap'}}><span>日均{whED(w)}台</span><span>周期{w.leadTime}天</span><span>缓冲{w.buffer}天</span><span>约{dl}天</span>{surplus>0&&<span style={{color:'var(--safe)',fontWeight:600}}>富余{surplus}台</span>}</div>
+          {wst!=='safe'&&<><div style={{marginTop:4,fontSize:12,fontWeight:600,color:'var(--danger)'}}>→ 缺{nd}台</div><div className="arrive-info">⏰ 补货到仓时剩余: <strong style={{color:arrStock<0?'var(--danger)':'var(--warn)'}}>{arrStock}台</strong>{arrStock<0?` → 断货${Math.abs(Math.ceil(arrStock/Math.max(whED(w),1)))}天`:' → 不会断但偏低'}</div></>}
+        </div>);})}</div>
+      {st!=='safe'&&<div className="speech-box"><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}><div className="section-title" style={{margin:0}}>📝 话术</div><button className="btn-copy" onClick={()=>copyText(speechText)}>📋 复制</button></div><textarea value={speechText} onChange={e=>setSpeechText(e.target.value)}/></div>}
+      <div style={{display:'flex',gap:8,marginTop:16}}><button className="btn-accent" style={{flex:1}} onClick={()=>{setDetailId(null);setEditId(sku.id);}}>✏️ 编辑</button><button className="btn-danger-sm" style={{flex:1,padding:'8px 10px',fontSize:13,borderRadius:20}} onClick={()=>{setConfirm({title:'删除',text:`删除「${sku.name}」？`,onOk:()=>{setSkus(ss=>ss.filter(s=>s.id!==sku.id));addLog('删除: '+sku.name);setDetailId(null);setConfirm(null);}});}}>🗑 删除</button></div>
+    </div></div>);
+  }
+
+  // ========== EDIT ==========
+  function EditModal(){const isEdit=!!editId;const ex=isEdit?skus.find(s=>s.id===editId):null;const [name,setName]=useState(ex?.name||'');const [code,setCode]=useState(ex?.code||'');const [brand,setBrand]=useState(ex?.brand||'');const [selWh,setSelWh]=useState(ex?ex.warehouses.map(w=>w.whId):[]);const [whParams,setWhParams]=useState(()=>{if(ex){const m={};ex.warehouses.forEach(w=>{m[w.whId]={stock:w.stock,dailySales:w.dailySales,leadTime:w.leadTime,buffer:w.buffer};});return m;}return{};});const [showNewWh,setShowNewWh]=useState(false);const [nwN,setNwN]=useState('');const [nwC,setNwC]=useState('');const [nwR,setNwR]=useState('');const [nwType,setNwType]=useState('satellite');
+    const toggleWh=id=>{setSelWh(s=>{if(s.includes(id))return s.filter(x=>x!==id);if(!whParams[id])setWhParams(p=>({...p,[id]:{stock:0,dailySales:3,leadTime:10,buffer:5}}));return[...s,id];});};
+    const setWP=(id,field,val)=>{setWhParams(p=>({...p,[id]:{...(p[id]||{stock:0,dailySales:3,leadTime:10,buffer:5}),[field]:parseInt(val)||0}}));};
+    const doAddWh=()=>{if(!nwN.trim()||!nwC.trim())return;const id='wh_'+gid();addWarehouse({id,name:nwN,city:nwC,type:nwType,region:nwR||'自定义'});setSelWh(s=>[...s,id]);setWhParams(p=>({...p,[id]:{stock:0,dailySales:3,leadTime:10,buffer:5}}));setNwN('');setNwC('');setNwR('');setNwType('satellite');setShowNewWh(false);};
+    const doSave=()=>{if(!name.trim()||!selWh.length)return;const whs=selWh.map(id=>{const p=whParams[id]||{stock:0,dailySales:3,leadTime:10,buffer:5};return{whId:id,stock:p.stock,allocated:0,dailySales:p.dailySales,leadTime:p.leadTime,buffer:p.buffer};});if(isEdit){setSkus(ss=>ss.map(s=>s.id===editId?{...s,name,code,brand,warehouses:whs}:s));addLog('更新: '+name);}else{setSkus(ss=>[...ss,{id:gid(),name,code,brand,warehouses:whs}]);addLog('新增: '+name);}setShowAdd(false);setEditId(null);};
+    const close=()=>{setShowAdd(false);setEditId(null);};
+    return(<div className="modal" onClick={close}><div className="modal-body" onClick={e=>e.stopPropagation()}>
+      <div className="modal-title">{isEdit?'编辑':'添加'}SKU库存监控</div>
+      <div className="field"><div className="field-label">商品名称 *</div><input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="MAXHUB V6经典版 75英寸"/></div>
+      <div className="field-row"><div className="field"><div className="field-label">SKU编码</div><input type="text" value={code} onChange={e=>setCode(e.target.value)} placeholder="100038374856"/></div><div className="field"><div className="field-label">品牌</div><input type="text" value={brand} onChange={e=>setBrand(e.target.value)} placeholder="MAXHUB"/></div></div>
+      <div className="field"><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}><div className="field-label" style={{marginBottom:0}}>选择入仓仓库</div><button className="btn-accent" style={{fontSize:11,padding:'3px 10px'}} onClick={()=>setShowNewWh(!showNewWh)}>➕ 新建</button></div><div className="wh-check">{warehouses.map(w=><div key={w.id} style={{display:'flex',alignItems:'center',gap:0}}><button className={`wh-opt${selWh.includes(w.id)?' sel':''}`} onClick={()=>toggleWh(w.id)} style={{borderRadius:'20px 0 0 20px',paddingRight:8}}><span className={`wh-type ${w.type}`}>{WHL[w.type]}</span>{w.city}</button><button style={{padding:'8px 6px',borderRadius:'0 20px 20px 0',border:'1.5px solid var(--border)',borderLeft:'none',background:'#fff',color:'var(--hint)',fontSize:12}} onClick={()=>setEditWhId(w.id)}>✏️</button></div>)}</div></div>
+      {showNewWh&&<div className="add-wh-row"><div style={{fontSize:13,fontWeight:600,color:'var(--warn)',marginBottom:8}}>➕ 新建仓库</div><div className="field-row"><div className="field"><div className="field-label">名称 *</div><input type="text" value={nwN} onChange={e=>setNwN(e.target.value)} placeholder="郑州中转仓"/></div><div className="field"><div className="field-label">城市 *</div><input type="text" value={nwC} onChange={e=>setNwC(e.target.value)} placeholder="郑州"/></div></div><div className="field-row"><div className="field"><div className="field-label">类型</div><div style={{display:'flex',gap:6}}>{WH_TYPES.map(t=><button key={t.id} className={`wh-opt${nwType===t.id?' sel':''}`} style={{padding:'6px 12px',fontSize:12}} onClick={()=>setNwType(t.id)}><span className={`wh-type ${t.id}`}>{t.label}</span></button>)}</div></div><div className="field"><div className="field-label">区域</div><input type="text" value={nwR} onChange={e=>setNwR(e.target.value)} placeholder="华中"/></div></div><button className="btn-accent" style={{width:'100%'}} onClick={doAddWh}>创建</button></div>}
+      {selWh.length>0&&<div style={{marginBottom:14}}><div className="field-label" style={{marginBottom:8}}>各仓参数</div>{selWh.map(id=>{const wh=warehouses.find(j=>j.id===id);if(!wh)return null;const p=whParams[id]||{stock:0,dailySales:3,leadTime:10,buffer:5};return(<div key={id} className="wh-edit-card"><div className="wh-edit-header"><span className={`wh-type ${wh.type}`}>{WHL[wh.type]}</span>{wh.city}<span style={{fontSize:11,color:'var(--hint)'}}>{wh.region}</span><span style={{marginLeft:'auto',fontSize:11,color:'var(--accent)',fontFamily:'monospace'}}>安全={p.dailySales*(p.leadTime+p.buffer)}</span></div><div className="wh-edit-fields"><div className="mini-field"><label>库存</label><input type="number" value={p.stock} onChange={e=>setWP(id,'stock',e.target.value)} min="0"/></div><div className="mini-field"><label>7日均</label><input type="number" value={p.dailySales} onChange={e=>setWP(id,'dailySales',e.target.value)} min="0"/></div><div className="mini-field"><label>周期</label><input type="number" value={p.leadTime} onChange={e=>setWP(id,'leadTime',e.target.value)} min="0"/></div><div className="mini-field"><label>缓冲</label><input type="number" value={p.buffer} onChange={e=>setWP(id,'buffer',e.target.value)} min="0"/></div></div></div>);})}</div>}
+      <button className="btn-primary" onClick={doSave}>{isEdit?'保存':'添加监控'}</button>
+    </div></div>);
+  }
+
+  function WhEditModal(){const wh=warehouses.find(w=>w.id===editWhId);if(!wh)return null;const [name,setName]=useState(wh.name);const [city,setCity]=useState(wh.city);const [type,setType]=useState(wh.type);const [region,setRegion]=useState(wh.region);
+    return(<div className="modal" onClick={()=>setEditWhId(null)}><div className="modal-body" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}><div style={{fontSize:17,fontWeight:600}}>编辑仓库</div><button className="btn-sm" onClick={()=>setEditWhId(null)}>关闭</button></div>
+      <div className="field"><div className="field-label">名称</div><input type="text" value={name} onChange={e=>setName(e.target.value)}/></div>
+      <div className="field-row"><div className="field"><div className="field-label">城市</div><input type="text" value={city} onChange={e=>setCity(e.target.value)}/></div><div className="field"><div className="field-label">区域</div><input type="text" value={region} onChange={e=>setRegion(e.target.value)}/></div></div>
+      <div className="field"><div className="field-label">类型</div><div style={{display:'flex',gap:8}}>{WH_TYPES.map(t=><button key={t.id} className={`wh-opt${type===t.id?' sel':''}`} onClick={()=>setType(t.id)}><span className={`wh-type ${t.id}`}>{t.label}</span></button>)}</div></div>
+      <div style={{display:'flex',gap:8}}><button className="btn-primary" style={{flex:1}} onClick={()=>{updateWarehouse(wh.id,{name,city,type,region});addLog('修改仓库: '+name);setEditWhId(null);}}>保存</button><button className="btn-danger-sm" style={{padding:'12px 20px',fontSize:14,borderRadius:50}} onClick={()=>{const inUse=skus.some(s=>s.warehouses.some(w=>w.whId===wh.id));if(inUse){showToast('⚠️ 使用中');return;}setConfirm({title:'删除',text:`删除「${wh.name}」？`,onOk:()=>{deleteWarehouse(wh.id);setEditWhId(null);setConfirm(null);}});}}>删除</button></div>
+    </div></div>);
+  }
+
+  function WarehouseView(){const whData=useMemo(()=>warehouses.map(wh=>{let ts=0,sc=0,al=0;skus.forEach(s=>{const w=s.warehouses.find(x=>x.whId===wh.id);if(w){ts+=whAvail(w);sc++;if(whSt(w)!=='safe')al++;}});return{...wh,totalStock:ts,skuCount:sc,alerts:al};}).filter(x=>x.skuCount>0),[skus,warehouses,promoOn,promoMult]);
+    if(!whData.length)return(<div className="empty"><div style={{fontSize:40}}>🏭</div><div className="empty-title">暂无仓库数据</div></div>);
+    return(<><div className="section-title">🏭 仓库网络</div>{whData.map(w=><div key={w.id} className="card" style={{padding:'12px 16px',cursor:'pointer'}} onClick={()=>setEditWhId(w.id)}><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span className={`wh-type ${w.type}`}>{WHL[w.type]}</span><span style={{fontWeight:600}}>{w.name}</span><span style={{fontSize:12,color:'var(--hint)'}}>{w.region}</span>{w.alerts>0?<span className="tag tag-danger" style={{marginLeft:'auto'}}>{w.alerts}预警</span>:<span className="tag tag-safe" style={{marginLeft:'auto'}}>正常</span>}</div><div style={{display:'flex',gap:16,fontSize:12,color:'var(--sub)'}}><span>SKU: {w.skuCount}</span><span>{w.totalStock}台</span></div></div>)}</>);
+  }
+
+  function LogView(){return(<><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}><div className="section-title" style={{margin:0}}>📋 日志</div>{logs.length>0&&<button className="btn-danger-sm" style={{padding:'6px 14px',fontSize:12,borderRadius:20}} onClick={()=>setConfirm({title:'清空',text:'清空？',onOk:()=>{setLogs([]);setConfirm(null);}})}>🗑 清空</button>}</div>{!logs.length?<div className="empty"><div className="empty-title">暂无</div></div>:<div className="card">{logs.map(l=><div key={l.id} className="log-item"><div className="log-content"><div>{l.msg}</div><div className="log-time">{new Date(l.time).toLocaleString('zh-CN')}</div></div><button className="log-del" onClick={()=>delLog(l.id)}>✕</button></div>)}</div>}</>);}
+
+  return(<div className="app">
+    <div className={`sidebar ${sideOpen?'open':''}`}><div className="sidebar-header"><span className="sidebar-title">📅 日期页</span><button className="btn-sm" onClick={()=>setSideOpen(false)}>关闭</button></div>
+      <div className="date-input-row"><input type="text" value={newDateVal} onChange={e=>setNewDateVal(e.target.value)} placeholder="如：6月15日"/><button className="btn-sm" style={{background:newDateVal.trim()?'var(--accent)':'var(--border)',color:newDateVal.trim()?'#fff':'var(--hint)',fontWeight:600}} onClick={addDate}>创建</button></div>
+      <div style={{padding:'0 18px',fontSize:11,color:'var(--hint)',marginBottom:8}}>新日期页复制前一天SKU和仓库，清空库存和日均待填</div>
+      <div className="sidebar-list">{!dates.length&&<div style={{padding:'20px 18px',fontSize:13,color:'var(--hint)',textAlign:'center'}}>创建日期页开始监控</div>}{dates.map(d=><div key={d.id} className={`sidebar-item ${currentDate===d.id?'active':''}`} onClick={()=>selectDate(d.id)}><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.label}</span><span style={{fontSize:12,color:'var(--hint)'}}>{d.skus?.length||0}个</span><button className="del-date" onClick={e=>{e.stopPropagation();setConfirm({title:'删除',text:`删除「${d.label}」？`,onOk:()=>delDate(d.id)});}}>删除</button></div>)}</div></div>
+    {sideOpen&&<div className="sidebar-mask show" onClick={()=>setSideOpen(false)}/>}
+
+    <div className="main">
+      <div className="topbar">
+        <button className="menu-btn" onClick={()=>setSideOpen(true)}><span/></button>
+        <span className="page-title">📦 库存水位{curDateObj&&<span style={{fontSize:12,fontWeight:400,color:'var(--hint)',marginLeft:6}}>{curDateObj.label}</span>}</span>
+        {promoOn&&<span className="header-badge" style={{background:'var(--promo)'}}>大促</span>}
+        {counts.danger>0&&<span className="header-badge" style={{background:'var(--danger)'}}>{counts.danger}</span>}
+        {currentDate&&<button className="btn-accent" style={{fontSize:11,padding:'4px 10px'}} onClick={()=>setShowAdd(true)}>+ SKU</button>}
+        {/* Search bar - always visible when has SKUs */}
+        {skus.length>0&&<div className="search-row">
+          <span className="search-icon">🔍</span>
+          <input ref={searchRef} type="text" value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="搜索SKU名称/编码/品牌..."/>
+          {searchQ&&<button className="search-clear" onClick={()=>{setSearchQ('');searchRef.current?.focus();}}>✕</button>}
+        </div>}
+      </div>
+
+      {tab==='dashboard'&&<Dashboard/>}
+      {tab==='warehouse'&&<WarehouseView/>}
+      {tab==='promoCalc'&&<PromoCalc/>}
+      {tab==='log'&&<LogView/>}
+    </div>
+
+    {detailId&&<DetailView/>}{(showAdd||editId)&&<EditModal/>}{editWhId&&<WhEditModal/>}
+    {confirm&&<div className="confirm-modal" onClick={()=>setConfirm(null)}><div className="confirm-box" onClick={e=>e.stopPropagation()}><h3>{confirm.title}</h3><p>{confirm.text}</p><div className="confirm-btns"><button className="confirm-cancel" onClick={()=>setConfirm(null)}>取消</button><button className="confirm-ok" onClick={confirm.onOk}>确认</button></div></div></div>}
+    {toast&&<div className="toast">{toast}</div>}
+    <div className="tab-bar"><div className="tab-bar-inner">
+      <button className={`tab-item${tab==='dashboard'?' active':''}`} onClick={()=>setTab('dashboard')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>总览</button>
+      <button className={`tab-item${tab==='promoCalc'?' active':''}`} onClick={()=>setTab('promoCalc')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>大促备货</button>
+      <button className={`tab-item${tab==='warehouse'?' active':''}`} onClick={()=>setTab('warehouse')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21V12h6v9"/></svg>仓库</button>
+      <button className={`tab-item${tab==='log'?' active':''}`} onClick={()=>setTab('log')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8m8 4H8m2-8H8"/></svg>日志</button>
+    </div></div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
